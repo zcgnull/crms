@@ -24,6 +24,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 //登录请求必须放行
                 .antMatchers("/user/login","/user/verify").permitAll()
+                //为了测试，使得查询登录用户信息无需认证
+                .antMatchers("/user/userInfo").anonymous()
                 //除了以上资源，剩下的http资源都必须登录后才能访问
                 .anyRequest().authenticated();
 
