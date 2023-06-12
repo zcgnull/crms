@@ -33,4 +33,7 @@ public class JWTUtils {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    //数据库实现JWT黑名单，7天清理一次黑名单数据库
+
 }

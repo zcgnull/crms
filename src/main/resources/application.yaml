@@ -17,6 +17,17 @@ spring:
       url: jdbc:mysql://82.157.191.133:3306/crms?createDatabaseIfNotExist=true&useSSL=false
     type: com.alibaba.druid.pool.DruidDataSource
 
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: 321434162@qq.com
+    password: twfswuthopnfbifb
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

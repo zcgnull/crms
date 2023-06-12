@@ -1,33 +1,27 @@
-package com.example.crms.domain.entity;
+package com.example.crms.domain.vo;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
+import com.example.crms.domain.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * (User)表实体类
- *
- * @author makejava
- * @since 2023-06-12 15:11:20
- */
-@SuppressWarnings("serial")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("user")
-public class User extends Model<User> {
+public class UserVo {
+
     //用户id
     private Integer userId;
-    
+
     private String userName;
-    
+
     private String userEmail;
-    
+
     private String userPassword;
-    
+
     private Integer departmentId;
 
-}
 
+}

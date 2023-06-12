@@ -13,5 +13,7 @@ import com.example.crms.domain.entity.User;
 public interface UserService extends IService<User> {
 
     ResponseResult userInfo();
+
+    User selectOneByEmail(String email);
 }
 
