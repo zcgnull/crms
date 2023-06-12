@@ -1,4 +1,4 @@
-package com.example.crms.entiy;
+package com.example.crms.domain;
 
 import com.example.crms.utils.ResultCode;
 
