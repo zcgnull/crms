@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @TableName("user")
 public class User extends Model<User> {
     //用户id
-    //@TableId(type = IdType.AUTO)
+    @TableId(type = IdType.AUTO)
     private Integer userId;
     
     private String userName;

@@ -80,6 +80,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         });
     }
 
+    /**
+     * 通过id更改密码
+     * @param user
+     * @return
+     */
+    @Override
+    public boolean changePassword(User user) {
+
+        int i = userMapper.updateById(user);
+        if (i == 1){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     class MyException extends Exception {
         public MyException(String message) {
             super(message);

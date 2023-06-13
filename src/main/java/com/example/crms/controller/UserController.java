@@ -1,6 +1,7 @@
 package com.example.crms.controller;
 
 import com.example.crms.domain.ResponseResult;
+import com.example.crms.domain.dto.ForgetUserDto;
 import com.example.crms.domain.dto.RegisterUserDto;
 import com.example.crms.domain.dto.LoginUserDto;
 import com.example.crms.domain.entity.User;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import static com.example.crms.utils.EmailUtils.*;
@@ -54,13 +56,14 @@ public class UserController {
         if (user == null){
             String inputCode = registerUserDto.getCode();
             String code = (String) session.getAttribute("code");
-//            if (code == null){
-//                return ResponseResult.errorResult(400, "注册失败,请重新获取验证码");
-//            }
-//            if (inputCode == null){
-//                return ResponseResult.errorResult(400, "注册失败,验证码不能为空");
-//            }
-//            if (inputCode.equals(code)) {
+            if (code == null){
+                return ResponseResult.errorResult(400, "注册失败,请重新获取验证码");
+            }
+            if (inputCode == null){
+                session.setAttribute("code", null);
+                return ResponseResult.errorResult(400, "注册失败,验证码不能为空");
+            }
+            if (inputCode.equals(code)) {
                 if(registerUserDto.getPassword().equals(registerUserDto.getConfirmPassword())){
                     // 验证通过
                     //通过事务改各个表来完成注册事件
@@ -78,10 +81,10 @@ public class UserController {
                 } else {
                     return ResponseResult.errorResult(400, "注册失败,两次密码不一致");
                 }
-//            } else {
-//                // 验证失败
-//                return ResponseResult.errorResult(400, "注册失败,验证码错误");
-//            }
+            } else {
+                // 验证失败
+                return ResponseResult.errorResult(400, "注册失败,验证码错误");
+            }
         } else {
             return ResponseResult.errorResult(400, "注册失败,邮箱已被使用");
         }
@@ -108,5 +111,49 @@ public class UserController {
             e.printStackTrace();
             return ResponseResult.errorResult(400, "邮件发送失败，请重试");
         }
+    }
+
+    @PostMapping("/forget")
+    @ApiOperation("忘记密码")
+    public ResponseResult forgetPassword(@RequestBody ForgetUserDto forgetUserDto, HttpSession session){
+        User user = userService.selectOneByEmail(forgetUserDto.getUserEmail());
+        if (user != null){
+            String inputCode = forgetUserDto.getCode();
+            String code = (String) session.getAttribute("code");
+            if (code == null){
+                return ResponseResult.errorResult(400, "更改失败,请重新获取验证码");
+            }
+            if (inputCode == null){
+                session.setAttribute("code", null);
+                return ResponseResult.errorResult(400, "更改失败,验证码不能为空");
+            }
+            if (inputCode.equals(code)) {
+                if(forgetUserDto.getPassword().equals(forgetUserDto.getConfirmPassword())){
+                    // 验证通过，更改密码
+                    user.setUserPassword(forgetUserDto.getPassword());
+                    boolean result = userService.changePassword(user);
+                    if (result){
+                        return ResponseResult.okResult(200, "修改成功");
+                    } else {
+                        return ResponseResult.errorResult(400, "修改失败,请重试");
+                    }
+                } else {
+                    return ResponseResult.errorResult(400, "修改失败,两次密码不一致");
+                }
+            } else {
+                // 验证失败
+                return ResponseResult.errorResult(400, "修改失败,验证码错误");
+            }
+        } else {
+            return ResponseResult.errorResult(400, "不存在此用户");
+        }
+    }
+
+    @GetMapping("/logout")
+    @ApiOperation("退出登录")
+    public ResponseResult logout(HttpServletRequest request){
+        String token = request.getHeader("token");
+        System.out.println(token);
+        return ResponseResult.okResult(200, "退出登录");
     }
 }
