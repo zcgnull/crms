@@ -16,6 +16,9 @@ public class UserInfoVo {
     private String userEmail;
     //用户部门名称
     private String departmentName;
+    //用户角色
+    private String roleName;
     //所有部门名称
     private List<String> departmentNames;
+
 }

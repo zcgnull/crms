@@ -1,7 +1,10 @@
 package com.example.crms.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.entity.Department;
+
+import java.util.List;
 
 /**
  * (Department)表服务接口
@@ -11,5 +14,6 @@ import com.example.crms.domain.entity.Department;
  */
 public interface DepartmentService extends IService<Department> {
 
+    List<String> getAllDepartmentNames();
 }
 

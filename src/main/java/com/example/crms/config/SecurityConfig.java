@@ -29,7 +29,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 //修改密码，仅供测试
                 .antMatchers("/user/changePassword").anonymous()
                 //查询用户信息，仅供测试
-                .antMatchers("/user/list","/user/add").anonymous()
+                .antMatchers("/user/list","/user/add","/role/allRoleNames").anonymous()
                 //除了以上资源，剩下的http资源都必须登录后才能访问
                 .anyRequest().authenticated();
 
