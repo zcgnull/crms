@@ -2,6 +2,7 @@ package com.example.crms.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.crms.domain.ResponseResult;
+import com.example.crms.domain.dto.UserDto;
 import com.example.crms.domain.entity.User;
 
 /**
@@ -13,5 +14,9 @@ import com.example.crms.domain.entity.User;
 public interface UserService extends IService<User> {
 
     ResponseResult userInfo();
+
+    ResponseResult updateUserInfo(UserDto userDto);
+
+    ResponseResult changePassword(String newPassword);
 }
 

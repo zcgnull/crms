@@ -6,9 +6,6 @@ import lombok.experimental.Accessors;
 import java.util.List;
 
 @Data
-
-//使Set方法返回对象，而不再是True和False
-@Accessors(chain = true)
 public class UserInfoVo {
 
     //用户ID
