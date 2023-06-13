@@ -27,7 +27,7 @@ public class UserController {
     @Autowired
     private MailService mailService;
 
-    @PostMapping("login")
+    @PostMapping("/login")
     @ApiOperation("登录")
     public ResponseResult login(@RequestBody LoginUserDto userDto){
         //根据邮箱查找用户
@@ -39,31 +39,52 @@ public class UserController {
         }
         User user = userService.selectOneByEmail(userDto.getUserEmail());
         if (user != null){
-            if (user.getUserPassword() == userDto.getUserPassword()){
+            if (user.getUserPassword().equals(userDto.getUserPassword())){
                 String token = JWTUtils.generateToken(String.valueOf(user.getUserId()));
                 return ResponseResult.okResult(200, "登录成功").ok(token);
             }
-        } else {
-            return ResponseResult.errorResult(400, "登录失败,账户或密码不正确");
         }
-        return ResponseResult.errorResult(400, "登录失败");
+        return ResponseResult.errorResult(400, "登录失败,账户或密码不正确");
     }
 
-    @PostMapping("")
+    @PostMapping("/register")
     @ApiOperation("注册")
     public ResponseResult register(@RequestBody RegisterUserDto registerUserDto, HttpSession session){
-        String inputCode = registerUserDto.getCode();
-        String code = (String) session.getAttribute("code");
-        if (inputCode.equals(code) && registerUserDto.getPassword().equals(registerUserDto.getConfirmPassword())) {
-            // 验证通过
-            //通过事务改各个表来完成注册事件
-
-            return ResponseResult.okResult(200, "注册成功");
+        User user = userService.selectOneByEmail(registerUserDto.getUserEmail());
+        if (user == null){
+            String inputCode = registerUserDto.getCode();
+            String code = (String) session.getAttribute("code");
+//            if (code == null){
+//                return ResponseResult.errorResult(400, "注册失败,请重新获取验证码");
+//            }
+//            if (inputCode == null){
+//                return ResponseResult.errorResult(400, "注册失败,验证码不能为空");
+//            }
+//            if (inputCode.equals(code)) {
+                if(registerUserDto.getPassword().equals(registerUserDto.getConfirmPassword())){
+                    // 验证通过
+                    //通过事务改各个表来完成注册事件
+                    User newUser = new User();
+                    newUser.setUserName(registerUserDto.getUserName());
+                    newUser.setUserEmail(registerUserDto.getUserEmail());
+                    newUser.setUserPassword(registerUserDto.getPassword());
+                    newUser.setDepartmentId(registerUserDto.getDepartmentId());
+                    boolean result = userService.registerUser(newUser);
+                    if (result){
+                        return ResponseResult.okResult(200, "注册成功");
+                    } else {
+                        return ResponseResult.errorResult(400, "注册失败,请重试");
+                    }
+                } else {
+                    return ResponseResult.errorResult(400, "注册失败,两次密码不一致");
+                }
+//            } else {
+//                // 验证失败
+//                return ResponseResult.errorResult(400, "注册失败,验证码错误");
+//            }
         } else {
-            // 验证失败
-            return ResponseResult.errorResult(400, "注册失败");
+            return ResponseResult.errorResult(400, "注册失败,邮箱已被使用");
         }
-
     }
 
     @GetMapping("/verify")

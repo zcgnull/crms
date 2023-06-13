@@ -16,6 +16,8 @@ spring:
       password: 210125
       url: jdbc:mysql://82.157.191.133:3306/crms?createDatabaseIfNotExist=true&useSSL=false
     type: com.alibaba.druid.pool.DruidDataSource
+    hikari:
+      connection-timeout: 5000
 
   mail:
     host: smtp.qq.com
