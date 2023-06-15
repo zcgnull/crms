@@ -19,8 +19,7 @@ import io.swagger.models.auth.In;
 import com.example.crms.utils.JWTUtils;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -69,46 +68,6 @@ public class UserController {
             }
         }
         return ResponseResult.errorResult(400, "登录失败,账户或密码不正确");
-    }
-
-    //用户信息修改
-    @PutMapping("/userInfo")
-    public ResponseResult updateUserInfo(@RequestBody UserDto userDto){
-
-        return userService.updateUserInfo(userDto);
-    }
-
-    //用户修改密码
-    @PutMapping("/changePassword")
-    public ResponseResult changePassword(String newPassword){
-
-        return userService.changePassword(newPassword);
-    }
-
-    /**
-     * 获取用户列表
-     */
-    @GetMapping("/list")
-    public ResponseResult list(UserDto userDto, Integer pageNum, Integer pageSize) {
-        return userService.selectUserPage(userDto,pageNum,pageSize);
-    }
-
-    /**
-     * 获取用户列表
-     */
-
-    /**
-     * 新增用户
-     */
-    @PostMapping("/add")
-    public ResponseResult add(@RequestBody UserAddDto userAddDto)
-
-    //确保邮箱唯一
-    {
-        if (!userService.checkEmailUnique(userAddDto)){
-            throw new SystemException(AppHttpCodeEnum.EMAIL_EXIST);
-        }
-        return userService.addUser(userAddDto);
     }
 
 
@@ -175,6 +134,48 @@ public class UserController {
             return ResponseResult.errorResult(400, "邮件发送失败，请重试");
         }
     }
+
+    //用户信息修改
+    @PutMapping("/userInfo")
+    public ResponseResult updateUserInfo(@RequestBody UserDto userDto){
+
+        return userService.updateUserInfo(userDto);
+    }
+
+    //用户修改密码
+    @PutMapping("/changePassword")
+    public ResponseResult changePassword(String newPassword){
+
+        return userService.changePassword(newPassword);
+    }
+
+    /**
+     * 获取用户列表
+     */
+    @GetMapping("/list")
+    public ResponseResult list(UserDto userDto, Integer pageNum, Integer pageSize) {
+        return userService.selectUserPage(userDto,pageNum,pageSize);
+    }
+
+    /**
+     * 获取用户列表
+     */
+
+    /**
+     * 新增用户
+     */
+    @PostMapping("/add")
+    public ResponseResult add(@RequestBody UserAddDto userAddDto)
+
+    //确保邮箱唯一
+    {
+        if (!userService.checkEmailUnique(userAddDto)){
+            throw new SystemException(AppHttpCodeEnum.EMAIL_EXIST);
+        }
+        return userService.addUser(userAddDto);
+    }
+
+
     /**
      * 删除用户
      */
