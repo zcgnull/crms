@@ -71,9 +71,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult userInfo() {
         //获取当前用户id
-//        Integer userId = SecurityUtils.getUserId();
+        Integer userId = SecurityUtils.getUserId();
         //测试使用，先将用户Id设置为24
-        Integer userId = 24;
+//        Integer userId = 24;
         //根据用户id查询用户信息
         User user = getById(userId);
         //封装成UserInfoVo

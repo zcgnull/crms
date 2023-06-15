@@ -135,6 +135,13 @@ public class UserController {
         }
     }
 
+    //当前用户信息
+    @GetMapping("/userInfo")
+    public ResponseResult userInfo(){
+
+        return userService.userInfo();
+    }
+
     //用户信息修改
     @PutMapping("/userInfo")
     public ResponseResult updateUserInfo(@RequestBody UserDto userDto){
