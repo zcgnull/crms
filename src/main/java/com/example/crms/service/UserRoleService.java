@@ -3,6 +3,8 @@ package com.example.crms.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.crms.domain.entity.UserRole;
 
+import java.util.List;
+
 /**
  * (UserRole)表服务接口
  *
@@ -11,5 +13,6 @@ import com.example.crms.domain.entity.UserRole;
  */
 public interface UserRoleService extends IService<UserRole> {
 
+    void removeUserRole(List<Integer> userIds);
 }
 

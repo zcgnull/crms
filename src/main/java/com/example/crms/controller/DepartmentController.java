@@ -18,9 +18,9 @@ public class DepartmentController {
     private DepartmentService departmentService;
 
     //所有部门名称信息
-//    @GetMapping("/departmentNames")
-//    public List<String> departmentInfo(){
-//
-//        return departmentService.getAllDepartmentNames();
-//    }
+    @GetMapping("/allDepartmentNames")
+    public List<String> departmentInfo(){
+
+        return departmentService.getAllDepartmentNames();
+    }
 }

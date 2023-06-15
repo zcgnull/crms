@@ -1,17 +1,21 @@
 package com.example.crms.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.UserAddDto;
+import com.example.crms.domain.dto.UserChangeDto;
 import com.example.crms.domain.dto.UserDto;
 import com.example.crms.domain.entity.Department;
 import com.example.crms.domain.entity.Role;
 import com.example.crms.domain.entity.User;
 import com.example.crms.domain.entity.UserRole;
 import com.example.crms.domain.vo.PageVo;
+import com.example.crms.domain.vo.UserInfoAdminVo;
 import com.example.crms.domain.vo.UserInfoVo;
 import com.example.crms.domain.vo.UserVo;
 import com.example.crms.mapper.DepartmentMapper;
@@ -228,6 +232,59 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //            insertUserRole(user);
 //        }
         return ResponseResult.okResult();
+    }
+
+    @Override
+    public ResponseResult getUserInfoAdmin(Integer userId) {
+
+
+        User user = getById(userId);
+
+        UserInfoAdminVo userInfoAdminVo = BeanCopyUtils.copyBean(user, UserInfoAdminVo.class);
+
+        //通过用户id，从user_role表中找到roleId
+        LambdaQueryWrapper<UserRole> userRoleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userRoleLambdaQueryWrapper.eq(UserRole::getUserId,userId);
+        Integer roleId = userRoleMapper.selectOne(userRoleLambdaQueryWrapper).getRoleId();
+
+        //通过roleId,得到roleName
+        userInfoAdminVo.setRoleName(roleMapper.selectById(roleId).getRoleName());
+
+        //通过部门Id,得到用户部门名称,并封装到vo对象中
+        userInfoAdminVo.setDepartmentName(departmentMapper.selectById(user.getDepartmentId()).getDepartmentName());
+
+        return ResponseResult.okResult(userInfoAdminVo);
+    }
+
+    @Override
+    @Transactional
+    public void updateUser(UserChangeDto userChangeDto) {
+
+        User user = BeanCopyUtils.copyBean(userChangeDto, User.class);
+
+
+        //根据前端传来的部门名称，得到部门ID
+        LambdaQueryWrapper<Department> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Department::getDepartmentName,userChangeDto.getDepartmentName());
+        Department department = departmentMapper.selectOne(queryWrapper);
+
+        user.setDepartmentId(department.getDepartmentId());
+
+        updateById(user);
+
+        //根据userAddDto中的角色名称，得到角色Id
+        LambdaQueryWrapper<Role> roleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        roleLambdaQueryWrapper.eq(Role::getRoleName,userChangeDto.getRoleName());
+        Integer roleId = roleMapper.selectOne(roleLambdaQueryWrapper).getRoleId();
+
+        LambdaUpdateWrapper<UserRole> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+
+        lambdaUpdateWrapper.eq(UserRole::getUserId,userChangeDto.getUserId());
+
+        lambdaUpdateWrapper.set(UserRole::getRoleId,roleId);
+
+        userRoleMapper.update(null,lambdaUpdateWrapper);
+
     }
 }
 
