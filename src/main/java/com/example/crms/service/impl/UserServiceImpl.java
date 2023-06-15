@@ -177,7 +177,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         //获取当前用户id
 //        Integer userId = SecurityUtils.getUserId();
-        //测试使用，先将用户Id设置为24
+        //测试，先将用户Id设置为24
         Integer userId = 24;
 
         userDto.setUserId(userId);
