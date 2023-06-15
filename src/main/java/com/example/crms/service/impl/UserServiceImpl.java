@@ -177,9 +177,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         //获取当前用户id
 //        Integer userId = SecurityUtils.getUserId();
-        //测试，先将用户Id设置为24
-        Integer userId = 24;
-
+        //测试，先将用户Id设置为26
+        Integer userId = 26;
         userDto.setUserId(userId);
         //根据前端传来的部门名称，得到部门ID
         LambdaQueryWrapper<Department> queryWrapper = new LambdaQueryWrapper<>();
