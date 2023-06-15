@@ -1,12 +1,11 @@
 package com.example.crms.domain.vo;
 
 import lombok.Data;
-import lombok.experimental.Accessors;
 
 import java.util.List;
 
 @Data
-public class UserInfoVo {
+public class UserInfoAdminVo {
 
     //用户ID
     private Integer userId;
@@ -18,7 +17,5 @@ public class UserInfoVo {
     private String departmentName;
     //用户角色
     private String roleName;
-    //所有部门名称
-    private List<String> departmentNames;
 
 }

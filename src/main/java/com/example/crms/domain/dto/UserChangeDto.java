@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDto {
+public class UserChangeDto {
 
     private Integer userId;
 
@@ -17,5 +17,5 @@ public class UserDto {
 
     private String departmentName;
 
-    private Integer departmentId;
+    private String roleName;
 }

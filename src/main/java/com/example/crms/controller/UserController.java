@@ -1,16 +1,29 @@
 package com.example.crms.controller;
 
 import com.example.crms.domain.ResponseResult;
+import com.example.crms.domain.dto.UserAddDto;
+import com.example.crms.domain.dto.UserChangeDto;
+import com.example.crms.domain.dto.UserDto;
 import com.example.crms.domain.dto.*;
 import com.example.crms.domain.entity.User;
+import com.example.crms.domain.entity.UserRole;
 import com.example.crms.enums.AppHttpCodeEnum;
 import com.example.crms.exception.SystemException;
+import com.example.crms.mapper.RoleMapper;
+import com.example.crms.mapper.UserRoleMapper;
+import com.example.crms.service.UserRoleService;
 import com.example.crms.service.MailService;
 import com.example.crms.service.UserService;
+import com.example.crms.utils.SecurityUtils;
+import io.swagger.models.auth.In;
 import com.example.crms.utils.JWTUtils;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +40,16 @@ public class UserController {
     private UserService userService;
 
     @Autowired
+    private UserRoleService userRoleService;
+
+    @Autowired
     private MailService mailService;
+
+    @Autowired
+    private UserRoleMapper userRoleMapper;
+
+    @Autowired
+    private RoleMapper roleMapper;
 
     @PostMapping("/login")
     @ApiOperation("登录")
@@ -153,48 +175,38 @@ public class UserController {
             return ResponseResult.errorResult(400, "邮件发送失败，请重试");
         }
     }
-
-    @PostMapping("/forget")
-    @ApiOperation("忘记密码")
-    public ResponseResult forgetPassword(@RequestBody ForgetUserDto forgetUserDto, HttpSession session){
-        User user = userService.selectOneByEmail(forgetUserDto.getUserEmail());
-        if (user != null){
-            String inputCode = forgetUserDto.getCode();
-            String code = (String) session.getAttribute("code");
-            if (code == null){
-                return ResponseResult.errorResult(400, "更改失败,请重新获取验证码");
-            }
-            if (inputCode == null){
-                session.setAttribute("code", null);
-                return ResponseResult.errorResult(400, "更改失败,验证码不能为空");
-            }
-            if (inputCode.equals(code)) {
-                if(forgetUserDto.getPassword().equals(forgetUserDto.getConfirmPassword())){
-                    // 验证通过，更改密码
-                    user.setUserPassword(forgetUserDto.getPassword());
-                    boolean result = userService.changePassword(user);
-                    if (result){
-                        return ResponseResult.okResult(200, "修改成功");
-                    } else {
-                        return ResponseResult.errorResult(400, "修改失败,请重试");
-                    }
-                } else {
-                    return ResponseResult.errorResult(400, "修改失败,两次密码不一致");
-                }
-            } else {
-                // 验证失败
-                return ResponseResult.errorResult(400, "修改失败,验证码错误");
-            }
-        } else {
-            return ResponseResult.errorResult(400, "不存在此用户");
-        }
+    /**
+     * 删除用户
+     */
+    @DeleteMapping("/userIds")
+    public ResponseResult remove(@RequestParam List<Integer> userIds) {
+//        if(userIds.contains(SecurityUtils.getUserId())){
+//            return ResponseResult.errorResult(500,"不能删除当前你正在使用的用户");
+//        }
+        System.out.println(userIds.toString());
+        userService.removeByIds(userIds);
+        userRoleService.removeUserRole(userIds);
+        return ResponseResult.okResult();
     }
 
-    @GetMapping("/logout")
-    @ApiOperation("退出登录")
-    public ResponseResult logout(HttpServletRequest request){
-        String token = request.getHeader("token");
-        System.out.println(token);
-        return ResponseResult.okResult(200, "退出登录");
+    /**
+     * 修改用户：根据用户编号获取详细信息
+     */
+    @GetMapping("/getUserInfoAdmin")
+    public ResponseResult getUserInfoAdmin(Integer userId)
+    {
+        return userService.getUserInfoAdmin(userId);
+
     }
+
+    /**
+     * 修改用户
+     */
+    @PutMapping("/edit")
+    public ResponseResult edit(@RequestBody UserChangeDto userChangeDto) {
+        userService.updateUser(userChangeDto);
+        return ResponseResult.okResult();
+    }
+
+
 }

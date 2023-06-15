@@ -3,6 +3,7 @@ package com.example.crms.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.UserAddDto;
+import com.example.crms.domain.dto.UserChangeDto;
 import com.example.crms.domain.dto.UserDto;
 import com.example.crms.domain.entity.User;
 
@@ -31,5 +32,9 @@ public interface UserService extends IService<User> {
     boolean checkEmailUnique(UserAddDto userAddDto);
 
     ResponseResult addUser(UserAddDto userAddDto);
+
+    ResponseResult getUserInfoAdmin(Integer userId);
+
+    void updateUser(UserChangeDto userChangeDto);
 }
 

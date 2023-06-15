@@ -20,4 +20,6 @@ public class UserAddDto {
     private String departmentName;
 
     private Integer departmentId;
+
+    private String roleName;
 }
