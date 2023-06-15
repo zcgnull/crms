@@ -7,21 +7,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Date;
-import java.sql.Timestamp;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("room")
-public class Room {
+@TableName("fixed_room")
+public class FixedRoom {
+
     @TableId(type = IdType.AUTO)
-    private int roomId;
-    private String roomName;
-    private Timestamp roomCreattime;
-    private String roomLocation;
-    private int roomCapacity;
-    private String roomDescription;
-    private String roomPicurl;
-    private int roomState;
+    private int fixedRoomId;
+    private String fixedRoomName;
+    private String fixedRoomLocation;
+    private String fixedRoomDescription;
+    private int fixedRoomState;
+
 }

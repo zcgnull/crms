@@ -1,13 +1,12 @@
 package com.example.crms.controller;
 
 import com.example.crms.domain.ResponseResult;
-import com.example.crms.domain.dto.ForgetUserDto;
-import com.example.crms.domain.dto.RegisterUserDto;
-import com.example.crms.domain.dto.LoginUserDto;
+import com.example.crms.domain.dto.*;
 import com.example.crms.domain.entity.User;
+import com.example.crms.enums.AppHttpCodeEnum;
+import com.example.crms.exception.SystemException;
 import com.example.crms.service.MailService;
 import com.example.crms.service.UserService;
-
 import com.example.crms.utils.JWTUtils;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,8 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import static com.example.crms.utils.EmailUtils.*;
+import static com.example.crms.utils.EmailUtils.generateEmailCaptcha;
+import static com.example.crms.utils.EmailUtils.isValidEmail;
 
 @RestController
 @RequestMapping("/user")
@@ -48,6 +48,47 @@ public class UserController {
         }
         return ResponseResult.errorResult(400, "登录失败,账户或密码不正确");
     }
+
+    //用户信息修改
+    @PutMapping("/userInfo")
+    public ResponseResult updateUserInfo(@RequestBody UserDto userDto){
+
+        return userService.updateUserInfo(userDto);
+    }
+
+    //用户修改密码
+    @PutMapping("/changePassword")
+    public ResponseResult changePassword(String newPassword){
+
+        return userService.changePassword(newPassword);
+    }
+
+    /**
+     * 获取用户列表
+     */
+    @GetMapping("/list")
+    public ResponseResult list(UserDto userDto, Integer pageNum, Integer pageSize) {
+        return userService.selectUserPage(userDto,pageNum,pageSize);
+    }
+
+    /**
+     * 获取用户列表
+     */
+
+    /**
+     * 新增用户
+     */
+    @PostMapping("/add")
+    public ResponseResult add(@RequestBody UserAddDto userAddDto)
+
+    //确保邮箱唯一
+    {
+        if (!userService.checkEmailUnique(userAddDto)){
+            throw new SystemException(AppHttpCodeEnum.EMAIL_EXIST);
+        }
+        return userService.addUser(userAddDto);
+    }
+
 
     @PostMapping("/register")
     @ApiOperation("注册")

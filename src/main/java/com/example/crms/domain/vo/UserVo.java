@@ -1,5 +1,6 @@
 package com.example.crms.domain.vo;
 
+
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.example.crms.domain.entity.User;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserVo {
 
-    //用户id
+    //用户ID
     private Integer userId;
 
     private String userName;
@@ -22,6 +23,8 @@ public class UserVo {
     private String userPassword;
 
     private Integer departmentId;
+    //用户部门名称
+    private String departmentName;
 
 
 }

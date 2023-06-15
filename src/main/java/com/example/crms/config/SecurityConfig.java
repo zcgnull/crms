@@ -23,7 +23,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 //登录请求必须放行
-                .antMatchers("/user/login","/user/logout","/user/verify","/user/register","/user/forget","/room/**").permitAll()
+                .antMatchers("/user/login","/user/verify").permitAll()
                 //除了以上资源，剩下的http资源都必须登录后才能访问
                 .anyRequest().authenticated();
 
