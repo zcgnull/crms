@@ -31,6 +31,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 //查询用户信息、新增用户、删除用户、查询所有角色、部门名称，仅供测试
                 .antMatchers("/user/list","/user/add","/role/allRoleNames","/user/userIds","/department/allDepartmentNames","/user/getUserInfoAdmin","/user/edit","/user/getStatus","/user/addStatus"
                         ,"/user/deleteStatus","/user/statusEdit","/user/statusUser").anonymous()
+                .antMatchers("/role/**").anonymous()
                 //除了以上资源，剩下的http资源都必须登录后才能访问
                 .anyRequest().authenticated();
 

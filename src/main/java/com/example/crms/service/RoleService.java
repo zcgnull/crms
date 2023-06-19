@@ -1,6 +1,7 @@
 package com.example.crms.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.entity.Role;
 import org.springframework.stereotype.Service;
 
@@ -15,5 +16,13 @@ import java.util.List;
 public interface RoleService extends IService<Role> {
 
     List<String> getAllRoleNames();
+
+    ResponseResult pageRoleList(Integer pageNum, Integer pageSize, String roleName);
+
+    ResponseResult addRole(Role role);
+
+    ResponseResult updateRole(Role role);
+
+    ResponseResult deleteRoleById(Integer roleId);
 }
 
