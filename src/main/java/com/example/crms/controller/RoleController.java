@@ -58,10 +58,10 @@ public class RoleController {
 
     /**
      * 删除角色
-     * @param roleId
+     * @param roleIds
      */
-    @DeleteMapping("/roleId")
-    public ResponseResult remove(Integer roleId) {
-        return roleService.deleteRoleById(roleId);
+    @DeleteMapping("/roleIds")
+    public ResponseResult remove(@RequestParam List<Integer> roleIds) {
+        return roleService.deleteRoleById(roleIds);
     }
 }

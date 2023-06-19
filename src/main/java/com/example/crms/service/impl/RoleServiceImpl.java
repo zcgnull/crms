@@ -112,17 +112,19 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     private UserRoleMapper userRoleMapper;
 
     @Override
-    public ResponseResult deleteRoleById(Integer roleId) {
+    public ResponseResult deleteRoleById(List<Integer> roleIds) {
 
+        int i = 0;
+        for(;i<roleIds.size();i++) {
+            LambdaQueryWrapper<UserRole> userRoleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userRoleLambdaQueryWrapper.eq(UserRole::getRoleId, roleIds.get(i));
 
-        LambdaQueryWrapper<UserRole> userRoleLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userRoleLambdaQueryWrapper.eq(UserRole::getRoleId, roleId);
-
-        List<UserRole> userRoles = userRoleMapper.selectList(userRoleLambdaQueryWrapper);
-        if (userRoles.size() != 0) {
-            return ResponseResult.errorResult(AppHttpCodeEnum.UserRole_EXIST);
+            List<UserRole> userRoles = userRoleMapper.selectList(userRoleLambdaQueryWrapper);
+            if (userRoles.size() != 0) {
+                return ResponseResult.errorResult(AppHttpCodeEnum.UserRole_EXIST);
+            }
         }
-        removeById(roleId);
+        removeByIds(roleIds);
         return ResponseResult.okResult();
     }
 }

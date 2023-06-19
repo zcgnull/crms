@@ -243,9 +243,9 @@ public class UserController {
     private ScheduleService scheduleService;
 
     @DeleteMapping("/deleteStatus")
-    public ResponseResult deleteStatus(Integer scheduleId) {
+    public ResponseResult deleteStatus(@RequestParam List<Integer> scheduleIds) {
 
-        scheduleService.removeById(scheduleId);
+        scheduleService.removeByIds(scheduleIds);
         return ResponseResult.okResult();
     }
 
