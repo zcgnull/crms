@@ -5,6 +5,7 @@ import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.UserAddDto;
 import com.example.crms.domain.dto.UserChangeDto;
 import com.example.crms.domain.dto.UserDto;
+import com.example.crms.domain.entity.Schedule;
 import com.example.crms.domain.entity.User;
 
 /**
@@ -36,5 +37,13 @@ public interface UserService extends IService<User> {
     ResponseResult getUserInfoAdmin(Integer userId);
 
     void updateUser(UserChangeDto userChangeDto);
+
+    ResponseResult addStatus(Schedule schedule);
+
+    ResponseResult getStatus(Integer pageNum, Integer pageSize);
+
+    ResponseResult statusEdit(Schedule schedule);
+
+    ResponseResult statusUser(Schedule schedule);
 }
 

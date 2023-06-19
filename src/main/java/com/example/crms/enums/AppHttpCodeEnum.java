@@ -10,7 +10,8 @@ public enum AppHttpCodeEnum {
     USERNAME_EXIST(501,"用户名已存在"),
     PHONENUMBER_EXIST(502,"手机号已存在"),
     EMAIL_EXIST(503, "邮箱已存在"),
-    REQUIRE_USERNAME(504, "必须填写用户名");
+    REQUIRE_USERNAME(504, "必须填写用户名"),
+    Status_EXIST(505,"该时间段已存在其它状态！");
 //    CONTENT_NOT_NULL(555,"无法发表空白评论"),
 //    FILE_TYPE_ERROR(507,"图片类型错误，请上传jpg或者png类型图片"),
 //    USERNAME_NOT_NULL(508, "用户名不能为空"),

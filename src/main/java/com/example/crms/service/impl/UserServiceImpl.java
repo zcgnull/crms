@@ -11,23 +11,21 @@ import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.UserAddDto;
 import com.example.crms.domain.dto.UserChangeDto;
 import com.example.crms.domain.dto.UserDto;
-import com.example.crms.domain.entity.Department;
-import com.example.crms.domain.entity.Role;
-import com.example.crms.domain.entity.User;
-import com.example.crms.domain.entity.UserRole;
+import com.example.crms.domain.entity.*;
 import com.example.crms.domain.vo.PageVo;
 import com.example.crms.domain.vo.UserInfoAdminVo;
 import com.example.crms.domain.vo.UserInfoVo;
 import com.example.crms.domain.vo.UserVo;
-import com.example.crms.mapper.DepartmentMapper;
-import com.example.crms.mapper.RoleMapper;
-import com.example.crms.mapper.UserMapper;
-import com.example.crms.mapper.UserRoleMapper;
+import com.example.crms.enums.AppHttpCodeEnum;
+import com.example.crms.exception.SystemException;
+import com.example.crms.mapper.*;
 import com.example.crms.service.DepartmentService;
 import com.example.crms.service.UserService;
 import com.example.crms.utils.BeanCopyUtils;
 import com.example.crms.utils.SecurityUtils;
 import io.swagger.models.auth.In;
+import jdk.nashorn.internal.ir.CallNode;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +34,11 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,11 +63,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private DepartmentService departmentService;
 
-    //返回用户信息
     @Autowired
     private UserMapper userMapper;
+
     @Autowired
     private TransactionTemplate transactionTemplate;
+
+    @Autowired
+    private ScheduleMapper scheduleMapper;
 
 
     @Override
@@ -355,6 +360,154 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         userRoleMapper.update(null,lambdaUpdateWrapper);
 
+    }
+
+    //新增用户状态
+    @Override
+    public ResponseResult addStatus(Schedule schedule) {
+        //获取当前用户id
+//        Integer userId = SecurityUtils.getUserId();
+        //测试使用，先将用户Id设置为24
+        Integer userId = 24;
+
+        schedule.setUserId(userId);
+
+        String scheduleName = schedule.getScheduleName();
+        if (scheduleName.equals("休假")||schedule.equals("开会")) {
+            schedule.setScheduleStatus(0);
+        }
+        else schedule.setScheduleStatus(1);
+
+//        LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+
+//        scheduleLambdaQueryWrapper.between(Schedule::getScheduleStarttime,schedule.getScheduleStarttime(),schedule.getScheduleEndtime()).or().
+//                between(Schedule::getScheduleEndtime,schedule.getScheduleStarttime(),schedule.getScheduleEndtime());
+
+//        List<Schedule> schedules = scheduleMapper.selectList(scheduleLambdaQueryWrapper);
+
+        List<Schedule> schedules = scheduleMapper.selectExistStatus(schedule.getUserId(),
+                schedule.getScheduleStarttime(), schedule.getScheduleEndtime());
+
+
+        if (schedules.size() == 0) {
+            scheduleMapper.insert(schedule);
+            return ResponseResult.okResult();
+        }
+
+        else {
+            throw new SystemException(AppHttpCodeEnum.Status_EXIST);
+        }
+    }
+
+    //用户状态列表分页查询
+    @Override
+    public ResponseResult getStatus(Integer pageNum, Integer pageSize) {
+        //获取当前用户id
+//        Integer userId = SecurityUtils.getUserId();
+        //测试使用，先将用户Id设置为24
+        Integer userId = 24;
+
+//        LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+//        scheduleLambdaQueryWrapper.eq(Schedule::getUserId,userId);
+
+        LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+
+        scheduleLambdaQueryWrapper.eq(Schedule::getUserId,userId);
+
+        Page page = new Page(pageNum, pageSize);
+
+        scheduleLambdaQueryWrapper.eq(Schedule::getUserId, userId);
+        scheduleLambdaQueryWrapper.orderByAsc(Schedule::getScheduleStarttime);
+//        LocalDateTime now = LocalDateTime.now();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        String format = df.format(new Date());
+
+        scheduleLambdaQueryWrapper.ge(Schedule::getScheduleStarttime, format);
+
+        Page page1 = scheduleMapper.selectPage(page, scheduleLambdaQueryWrapper);
+
+
+        PageVo pageVo = new PageVo();
+        pageVo.setTotal(page1.getTotal());
+        pageVo.setRows(page1.getRecords());
+
+//        List<Schedule> schedules = page.getRecords();
+
+        return ResponseResult.okResult(pageVo);
+    }
+
+    @Override
+    public ResponseResult statusEdit(Schedule schedule) {
+
+        String scheduleName = schedule.getScheduleName();
+        if (scheduleName.equals("休假")||schedule.equals("开会")) {
+            schedule.setScheduleStatus(0);
+        }
+        else schedule.setScheduleStatus(1);
+
+        Schedule schedule1 = scheduleMapper.selectById(schedule.getScheduleId());
+
+        //如果没改变时间，则不用再进行时间段的判定
+        if (schedule1.getScheduleStarttime().equals(schedule.getScheduleStarttime()) && schedule1.getScheduleEndtime().equals(schedule.getScheduleEndtime())) {
+            scheduleMapper.updateById(schedule);
+            return ResponseResult.okResult();
+        }
+
+        List<Schedule> schedules = scheduleMapper.selectExistStatus(schedule.getUserId(),
+                schedule.getScheduleStarttime(), schedule.getScheduleEndtime());
+
+        if (schedules.size() == 0) {
+            scheduleMapper.updateById(schedule);
+            return ResponseResult.okResult();
+        }
+
+        else {
+            throw new SystemException(AppHttpCodeEnum.Status_EXIST);
+        }
+
+    }
+
+    @Override
+    public ResponseResult statusUser(Schedule schedule) {
+
+        //得到所有用户名称的List集合
+        List<User> users = userMapper.selectList(null);
+
+        ArrayList<String> userNames = new ArrayList<>();
+
+        for (User user: users
+             ) {
+            userNames.add(user.getUserName());
+        }
+
+        //将不可约的用户排除掉
+        //首先得到不可约用户的Id集合
+        List<Schedule> schedules = scheduleMapper.selectUserStatus(schedule.getScheduleStarttime(), schedule.getScheduleEndtime());
+
+        ArrayList<Integer> exUserIds = new ArrayList<>();
+        if (schedules.size() != 0) {
+            for (Schedule schedule1: schedules
+            ) {
+                exUserIds.add(schedule1.getUserId());
+            }
+
+            //根据Id获取对应的姓名
+            List<User> users1 = userMapper.selectBatchIds(exUserIds);
+
+            ArrayList<String> exUserNames = new ArrayList<>();
+            for (User user: users1
+            ) {
+                exUserNames.add(user.getUserName());
+            }
+
+            Collection subtract = CollectionUtils.subtract(userNames, exUserNames);
+
+            return ResponseResult.okResult(subtract);
+
+        }
+        //所有用户都可约
+        else
+            return ResponseResult.okResult(userNames);
     }
 }
 

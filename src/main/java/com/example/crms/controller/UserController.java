@@ -5,12 +5,14 @@ import com.example.crms.domain.dto.UserAddDto;
 import com.example.crms.domain.dto.UserChangeDto;
 import com.example.crms.domain.dto.UserDto;
 import com.example.crms.domain.dto.*;
+import com.example.crms.domain.entity.Schedule;
 import com.example.crms.domain.entity.User;
 import com.example.crms.domain.entity.UserRole;
 import com.example.crms.enums.AppHttpCodeEnum;
 import com.example.crms.exception.SystemException;
 import com.example.crms.mapper.RoleMapper;
 import com.example.crms.mapper.UserRoleMapper;
+import com.example.crms.service.ScheduleService;
 import com.example.crms.service.UserRoleService;
 import com.example.crms.service.MailService;
 import com.example.crms.service.UserService;
@@ -216,5 +218,53 @@ public class UserController {
         return ResponseResult.okResult();
     }
 
+    /**
+     * 查看当前用户状态
+     */
+    @GetMapping("/getStatus")
+    public ResponseResult getStatus(Integer pageNum, Integer pageSize) {
+
+        return userService.getStatus(pageNum, pageSize);
+    }
+
+    /**
+     * 新增用户状态
+     */
+    @PostMapping("/addStatus")
+    public ResponseResult addStatus(@RequestBody Schedule schedule) {
+
+        return userService.addStatus(schedule);
+    }
+
+    /**
+     * 删除用户状态
+     */
+    @Autowired
+    private ScheduleService scheduleService;
+
+    @DeleteMapping("/deleteStatus")
+    public ResponseResult deleteStatus(Integer scheduleId) {
+
+        scheduleService.removeById(scheduleId);
+        return ResponseResult.okResult();
+    }
+
+    /**
+     * 修改用户状态
+     */
+    @PutMapping("/statusEdit")
+    public ResponseResult statusEdit(@RequestBody Schedule schedule) {
+
+        return userService.statusEdit(schedule);
+    }
+
+    /**
+     * 各个用户是否可约
+     */
+    @GetMapping("/statusUser")
+    public ResponseResult statusUser(@RequestBody Schedule schedule) {
+
+        return userService.statusUser(schedule);
+    }
 
 }
