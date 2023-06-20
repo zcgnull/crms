@@ -15,5 +15,13 @@ import java.util.List;
 public interface DepartmentService extends IService<Department> {
 
     List<String> getAllDepartmentNames();
+
+    ResponseResult getdepartmentList(Integer pageNum, Integer pageSize, String departmentName);
+
+    ResponseResult addDepartment(Department department);
+
+    ResponseResult deleteDepartmentById(List<Integer> departmentIds);
+
+    ResponseResult updateDepartment(Department department);
 }
 

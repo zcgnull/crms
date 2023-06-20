@@ -32,6 +32,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/user/list","/user/add","/role/allRoleNames","/user/userIds","/department/allDepartmentNames","/user/getUserInfoAdmin","/user/edit","/user/getStatus","/user/addStatus"
                         ,"/user/deleteStatus","/user/statusEdit","/user/statusUser").anonymous()
                 .antMatchers("/role/**").anonymous()
+                .antMatchers("/department/**").anonymous()
                 //除了以上资源，剩下的http资源都必须登录后才能访问
                 .anyRequest().authenticated();
 

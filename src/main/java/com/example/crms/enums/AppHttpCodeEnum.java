@@ -13,7 +13,9 @@ public enum AppHttpCodeEnum {
     REQUIRE_USERNAME(504, "必须填写用户名"),
     Status_EXIST(505,"该时间段已存在其它状态！"),
     RoleName_EXIST(506,"该角色已存在"),
-    UserRole_EXIST(507,"该角色仍对应用户，无法删除");
+    UserRole_EXIST(507,"所选角色仍对应用户，无法删除"),
+    DepartmentName_EXIST(508,"该部门已存在"),
+    UserDepartment_EXIST(507,"所选部门仍对应用户，无法删除");
 //    CONTENT_NOT_NULL(555,"无法发表空白评论"),
 //    FILE_TYPE_ERROR(507,"图片类型错误，请上传jpg或者png类型图片"),
 //    USERNAME_NOT_NULL(508, "用户名不能为空"),
