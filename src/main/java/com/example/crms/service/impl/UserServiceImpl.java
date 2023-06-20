@@ -224,7 +224,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.like(StringUtils.hasText(userDto.getUserName()),User::getUserName,userDto.getUserName());
 
         Integer departmentIdTemp = -1;
-        if (userDto.getDepartmentName() != null) {
+        if (userDto.getDepartmentName() != null && userDto.getDepartmentName() != "") {
 
             LambdaQueryWrapper<Department> departmentLambdaQueryWrapper = new LambdaQueryWrapper<>();
             departmentLambdaQueryWrapper.eq(Department::getDepartmentName,userDto.getDepartmentName());
