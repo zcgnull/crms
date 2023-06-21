@@ -87,9 +87,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult userInfo() {
         //获取当前用户id
-//        Integer userId = SecurityUtils.getUserId();
+        Integer userId = SecurityUtils.getUserId();
         //测试使用，先将用户Id设置为24
-        Integer userId = 24;
+//        Integer userId = 24;
         //根据用户id查询用户信息
         User user = getById(userId);
         //封装成UserInfoVo
@@ -145,35 +145,35 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return ResponseResult.errorResult(402, "邮箱格式不正确");
         }
 
-//        //AuthenticationManager authenticate进行用户认证
-//        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserEmail(), user.getUserPassword());
-//        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
-//        //如果认证没通过，给出对应的提示
-//        if(Objects.isNull(authenticate)){
-//            throw new RuntimeException("登录失败");
-//        }
-//        //如果认证通过了。使用userID生成一个jwt  jwt存入ResponseResult返回
-//        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
-//        String userId = loginUser.getUser().getUserId().toString();
-//        String jwt = JwtUtil.createJWT(userId);
-//        Map<String, String> map = new HashMap<>();
-//        map.put("token", jwt);
-//        //把完整的用户信息存入redis  userid作为key
-//        redisCache.setCacheObject("login:" + userId, loginUser);
-//
-//        return new ResponseResult(200, "登录成功", map);
-
-        QueryWrapper<User> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("user_email", user.getUserEmail());
-        User user1 = userMapper.selectOne(queryWrapper);
-        if (user1 != null){
-            if (user1.getUserPassword().equals(user.getUserPassword())){
-                String token = JWTUtils.generateToken(String.valueOf(user1.getUserId()));
-                return ResponseResult.okResult(200, "登录成功").ok(token);
-            }
+        //AuthenticationManager authenticate进行用户认证
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserEmail(), user.getUserPassword());
+        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+        //如果认证没通过，给出对应的提示
+        if(Objects.isNull(authenticate)){
+            throw new RuntimeException("登录失败");
         }
+        //如果认证通过了。使用userID生成一个jwt  jwt存入ResponseResult返回
+        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+        String userId = loginUser.getUser().getUserId().toString();
+        String jwt = JwtUtil.createJWT(userId);
+        Map<String, String> map = new HashMap<>();
+        map.put("token", jwt);
+        //把完整的用户信息存入redis  userid作为key
+        redisCache.setCacheObject("login:" + userId, loginUser);
 
-        return ResponseResult.okResult(400, "邮箱或密码错误");
+        return new ResponseResult(200, "登录成功", map);
+
+//        QueryWrapper<User> queryWrapper = new QueryWrapper();
+//        queryWrapper.eq("user_email", user.getUserEmail());
+//        User user1 = userMapper.selectOne(queryWrapper);
+//        if (user1 != null){
+//            if (user1.getUserPassword().equals(user.getUserPassword())){
+//                String token = JWTUtils.generateToken(String.valueOf(user1.getUserId()));
+//                return ResponseResult.okResult(200, "登录成功").ok(token);
+//            }
+//        }
+//
+//        return ResponseResult.okResult(400, "邮箱或密码错误");
     }
 
     @Override
@@ -245,9 +245,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public ResponseResult updateUserInfo(UserDto userDto) {
 
         //获取当前用户id
-//        Integer userId = SecurityUtils.getUserId();
+        Integer userId = SecurityUtils.getUserId();
         //测试使用，先将用户Id设置为24
-        Integer userId = 24;
+//        Integer userId = 24;
 
         userDto.setUserId(userId);
         //根据前端传来的部门名称，得到部门ID
@@ -268,9 +268,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult changePassword(String newPassword) {
         //获取当前用户id
-//        Integer userId = SecurityUtils.getUserId();
+        Integer userId = SecurityUtils.getUserId();
         //测试使用，先将用户Id设置为24
-        Integer userId = 24;
+//        Integer userId = 24;
         //根据用户id查询用户信息
         User user = getById(userId);
         user.setUserPassword(newPassword);
@@ -452,9 +452,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult addStatus(Schedule schedule) {
         //获取当前用户id
-//        Integer userId = SecurityUtils.getUserId();
+        Integer userId = SecurityUtils.getUserId();
         //测试使用，先将用户Id设置为24
-        Integer userId = 24;
+//        Integer userId = 24;
 
         schedule.setUserId(userId);
 
@@ -489,9 +489,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult getStatus(Integer pageNum, Integer pageSize) {
         //获取当前用户id
-//        Integer userId = SecurityUtils.getUserId();
+        Integer userId = SecurityUtils.getUserId();
         //测试使用，先将用户Id设置为24
-        Integer userId = 24;
+//        Integer userId = 24;
 
 //        LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
 //        scheduleLambdaQueryWrapper.eq(Schedule::getUserId,userId);
