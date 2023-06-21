@@ -2,7 +2,9 @@ package com.example.crms;
 
 import com.example.crms.utils.EmailUtils;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.File;
 import java.sql.Timestamp;
@@ -12,6 +14,8 @@ import java.util.Date;
 class CrmsApplicationTests {
 
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     @Test
     void contextLoads() {
         Date date = new Date();
@@ -31,6 +35,19 @@ class CrmsApplicationTests {
         } else {
             System.out.println("文件删除失败！");
         }
+    }
+
+    @Test
+    void test2(){
+//        $2a$10$npv5JSeFR6/wLz8BBMmSBOMb8byg2eyfK4/vvoBk3RKtTLBhIhcpy
+
+//        System.out.println(passwordEncoder.
+//                matches("1234",
+//                        "$2a$10$npv5JSeFR6/wLz8BBMmSBOMb8byg2eyfK4/vvoBk3RKtTLBhIhcpy"));
+        String encode = passwordEncoder.encode("qwe");
+//        String encode2 = passwordEncoder.encode("1234");
+        System.out.println(encode);
+//        System.out.println(encode2);
     }
 
 }

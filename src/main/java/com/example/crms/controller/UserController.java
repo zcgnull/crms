@@ -7,7 +7,6 @@ import com.example.crms.domain.dto.UserDto;
 import com.example.crms.domain.dto.*;
 import com.example.crms.domain.entity.Schedule;
 import com.example.crms.domain.entity.User;
-import com.example.crms.domain.entity.UserRole;
 import com.example.crms.enums.AppHttpCodeEnum;
 import com.example.crms.exception.SystemException;
 import com.example.crms.mapper.RoleMapper;
@@ -16,12 +15,10 @@ import com.example.crms.service.ScheduleService;
 import com.example.crms.service.UserRoleService;
 import com.example.crms.service.MailService;
 import com.example.crms.service.UserService;
-import com.example.crms.utils.SecurityUtils;
-import io.swagger.models.auth.In;
-import com.example.crms.utils.JWTUtils;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,30 +43,12 @@ public class UserController {
     @Autowired
     private MailService mailService;
 
-    @Autowired
-    private UserRoleMapper userRoleMapper;
-
-    @Autowired
-    private RoleMapper roleMapper;
 
     @PostMapping("/login")
     @ApiOperation("登录")
-    public ResponseResult login(@RequestBody LoginUserDto userDto){
-        //根据邮箱查找用户
-        if (userDto.getUserEmail() == null){
-            return ResponseResult.errorResult(401, "邮箱不能为空");
-        }
-        if (!isValidEmail(userDto.getUserEmail())){
-            return ResponseResult.errorResult(402, "邮箱格式不正确");
-        }
-        User user = userService.selectOneByEmail(userDto.getUserEmail());
-        if (user != null){
-            if (user.getUserPassword().equals(userDto.getUserPassword())){
-                String token = JWTUtils.generateToken(String.valueOf(user.getUserId()));
-                return ResponseResult.okResult(200, "登录成功").ok(token);
-            }
-        }
-        return ResponseResult.errorResult(400, "登录失败,账户或密码不正确");
+    public ResponseResult login(@RequestBody User user){
+
+        return userService.login(user);
     }
 
 
@@ -144,6 +123,48 @@ public class UserController {
         return userService.userInfo();
     }
 
+    @PostMapping("/forget")
+    @ApiOperation("忘记密码")
+    public ResponseResult forgetPassword(@RequestBody ForgetUserDto forgetUserDto, HttpSession session){
+        User user = userService.selectOneByEmail(forgetUserDto.getUserEmail());
+        if (user != null){
+            String inputCode = forgetUserDto.getCode();
+            String code = (String) session.getAttribute("code");
+            if (code == null){
+                return ResponseResult.errorResult(400, "更改失败,请重新获取验证码");
+            }
+            if (inputCode == null){
+                session.setAttribute("code", null);
+                return ResponseResult.errorResult(400, "更改失败,验证码不能为空");
+            }
+            if (inputCode.equals(code)) {
+                if(forgetUserDto.getPassword().equals(forgetUserDto.getConfirmPassword())){
+                    // 验证通过，更改密码
+                    user.setUserPassword(forgetUserDto.getPassword());
+                    boolean result = userService.changePassword(user);
+                    if (result){
+                        return ResponseResult.okResult(200, "修改成功");
+                    } else {
+                        return ResponseResult.errorResult(400, "修改失败,请重试");
+                    }
+                } else {
+                    return ResponseResult.errorResult(400, "修改失败,两次密码不一致");
+                }
+            } else {
+                // 验证失败
+                return ResponseResult.errorResult(400, "修改失败,验证码错误");
+            }
+        } else {
+            return ResponseResult.errorResult(400, "不存在此用户");
+        }
+    }
+
+    @GetMapping("/logout")
+    @ApiOperation("退出登录")
+    public ResponseResult logout(){
+        return userService.logout();
+    }
+
     //用户信息修改
     @PutMapping("/userInfo")
     public ResponseResult updateUserInfo(@RequestBody UserDto userDto){
@@ -165,10 +186,6 @@ public class UserController {
     public ResponseResult list(UserDto userDto, Integer pageNum, Integer pageSize) {
         return userService.selectUserPage(userDto,pageNum,pageSize);
     }
-
-    /**
-     * 获取用户列表
-     */
 
     /**
      * 新增用户
@@ -203,6 +220,7 @@ public class UserController {
      * 修改用户：根据用户编号获取详细信息
      */
     @GetMapping("/getUserInfoAdmin")
+    @PreAuthorize("hasAuthority('5')")
     public ResponseResult getUserInfoAdmin(Integer userId)
     {
         return userService.getUserInfoAdmin(userId);

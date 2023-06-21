@@ -2,11 +2,14 @@ package com.example.crms.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.crms.domain.ResponseResult;
+import com.example.crms.domain.dto.LoginUserDto;
 import com.example.crms.domain.dto.UserAddDto;
 import com.example.crms.domain.dto.UserChangeDto;
 import com.example.crms.domain.dto.UserDto;
 import com.example.crms.domain.entity.Schedule;
 import com.example.crms.domain.entity.User;
+
+import java.util.List;
 
 /**
  * (User)表服务接口
@@ -19,6 +22,10 @@ public interface UserService extends IService<User> {
     ResponseResult userInfo();
 
     User selectOneByEmail(String email);
+
+    ResponseResult login(User user);
+
+    ResponseResult logout();
 
     boolean registerUser(User newUser);
 
@@ -37,6 +44,8 @@ public interface UserService extends IService<User> {
     ResponseResult getUserInfoAdmin(Integer userId);
 
     void updateUser(UserChangeDto userChangeDto);
+
+    List<String> getPermissions(int userId);
 
     ResponseResult addStatus(Schedule schedule);
 

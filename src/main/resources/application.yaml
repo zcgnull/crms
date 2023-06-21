@@ -18,6 +18,15 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     hikari:
       connection-timeout: 5000
+  redis:
+    host: 82.157.191.133
+    port: 6379
+    password: 210125
+    jedis:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
 
   mail:
     host: smtp.qq.com
@@ -37,3 +46,6 @@ mybatis-plus:
     db-config:
       id-type: auto
 
+my:
+  maxLeadTime: 1000
+  maxDurationTime: 1000

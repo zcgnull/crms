@@ -21,12 +21,15 @@ import com.example.crms.exception.SystemException;
 import com.example.crms.mapper.*;
 import com.example.crms.service.DepartmentService;
 import com.example.crms.service.UserService;
-import com.example.crms.utils.BeanCopyUtils;
-import com.example.crms.utils.SecurityUtils;
+import com.example.crms.utils.*;
 import io.swagger.models.auth.In;
 import jdk.nashorn.internal.ir.CallNode;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.TransactionStatus;
@@ -40,7 +43,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.example.crms.utils.EmailUtils.isValidEmail;
 
 /**
  * (User)表服务实现类
@@ -62,12 +68,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private DepartmentService departmentService;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
+    //返回用户信息
     @Autowired
     private UserMapper userMapper;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
+    @Autowired
+    private RedisCache redisCache;
 
     @Autowired
     private ScheduleMapper scheduleMapper;
@@ -123,6 +134,59 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.eq("user_email", email);
         return userMapper.selectOne(queryWrapper);
     }
+
+    @Override
+    public ResponseResult login(User user) {
+        //根据邮箱查找用户
+        if (user.getUserEmail() == null){
+            return ResponseResult.errorResult(401, "邮箱不能为空");
+        }
+        if (!isValidEmail(user.getUserEmail())){
+            return ResponseResult.errorResult(402, "邮箱格式不正确");
+        }
+
+//        //AuthenticationManager authenticate进行用户认证
+//        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserEmail(), user.getUserPassword());
+//        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+//        //如果认证没通过，给出对应的提示
+//        if(Objects.isNull(authenticate)){
+//            throw new RuntimeException("登录失败");
+//        }
+//        //如果认证通过了。使用userID生成一个jwt  jwt存入ResponseResult返回
+//        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+//        String userId = loginUser.getUser().getUserId().toString();
+//        String jwt = JwtUtil.createJWT(userId);
+//        Map<String, String> map = new HashMap<>();
+//        map.put("token", jwt);
+//        //把完整的用户信息存入redis  userid作为key
+//        redisCache.setCacheObject("login:" + userId, loginUser);
+//
+//        return new ResponseResult(200, "登录成功", map);
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper();
+        queryWrapper.eq("user_email", user.getUserEmail());
+        User user1 = userMapper.selectOne(queryWrapper);
+        if (user1 != null){
+            if (user1.getUserPassword().equals(user.getUserPassword())){
+                String token = JWTUtils.generateToken(String.valueOf(user1.getUserId()));
+                return ResponseResult.okResult(200, "登录成功").ok(token);
+            }
+        }
+
+        return ResponseResult.okResult(400, "邮箱或密码错误");
+    }
+
+    @Override
+    public ResponseResult logout() {
+        //获取SecurityContextHolder中的用户id
+        UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        int userId = loginUser.getUser().getUserId();
+        //删除redis中的值
+        redisCache.deleteObject("login:" + userId);
+        return ResponseResult.okResult(200, "注销成功");
+    }
+
 
     /**
      * 注册新用户事务
@@ -182,8 +246,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         //获取当前用户id
 //        Integer userId = SecurityUtils.getUserId();
-        //测试，先将用户Id设置为24
+        //测试使用，先将用户Id设置为24
         Integer userId = 24;
+
         userDto.setUserId(userId);
         //根据前端传来的部门名称，得到部门ID
         LambdaQueryWrapper<Department> queryWrapper = new LambdaQueryWrapper<>();
@@ -360,6 +425,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         userRoleMapper.update(null,lambdaUpdateWrapper);
 
+    }
+
+    /**
+     * 根据用户id获取权限数组
+     * @param userId
+     * @return
+     */
+    @Override
+    public List<String> getPermissions(int userId) {
+        List<String> permissions = new ArrayList<>();
+        User user = userMapper.selectById(userId);
+        if (user != null){
+            LambdaQueryWrapper<UserRole> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(UserRole::getUserId, user.getUserId());
+            List<UserRole> userRoles = userRoleMapper.selectList(queryWrapper);
+            for (UserRole userRole : userRoles) {
+                Role role = roleMapper.selectById(userRole.getRoleId());
+                permissions.add(String.valueOf(role.getRolePermission()));
+            }
+        }
+        return permissions;
     }
 
     //新增用户状态

@@ -1,23 +1,16 @@
 package com.example.crms.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.AddRoomDto;
 import com.example.crms.domain.dto.UpdateRoomDto;
 import com.example.crms.domain.entity.Room;
-import com.example.crms.service.FixedRoomService;
-import com.example.crms.service.RomFixedRoomService;
 import com.example.crms.service.RoomService;
-import com.example.crms.utils.BeanCopyUtils;
 import io.swagger.annotations.ApiOperation;
-import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
+
 
 @RestController
 @RequestMapping("/room")
@@ -44,14 +37,14 @@ public class RoomController {
          return roomService.uploadPic(file);
     }
 
-    @GetMapping("/delete")
+    @DeleteMapping("/delete")
     @ApiOperation("删除会议室")
     public ResponseResult deleteRoom(int roomId){
 
         return roomService.deleteRoom(roomId);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     @ApiOperation("更新会议室")
     public ResponseResult updateRoom(@RequestBody UpdateRoomDto updateRoomDto){
 
@@ -75,4 +68,17 @@ public class RoomController {
             return roomService.findRoomByStateOrLocationOrDepartment(roomState, roomLocation, departmentId);
         }
     }
+
+
+    @GetMapping("/info")
+    @ApiOperation("获取会议室信息")
+    public ResponseResult roomInfo(@RequestParam int roomId){
+        Room room = roomService.getById(roomId);
+        if (room != null){
+            return ResponseResult.okResult(200, "获取会议室信息成功").ok(room);
+        } else {
+            return ResponseResult.okResult(400, "获取会议室信息失败");
+        }
+    }
+
 }
