@@ -93,7 +93,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
         //没有修改角色名，只修改了其它信息
         Role role1 = roleMapper.selectById(role.getRoleId());
         if (role1.getRoleName().equals(roleName)) {
-            save(role);
+            updateById(role);
             return ResponseResult.okResult();
         }
 

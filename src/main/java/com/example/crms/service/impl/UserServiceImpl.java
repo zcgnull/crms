@@ -30,6 +30,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.TransactionStatus;
@@ -264,6 +265,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return ResponseResult.okResult();
     }
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     //修改密码
     @Override
     public ResponseResult changePassword(String newPassword) {
@@ -273,7 +277,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //        Integer userId = 24;
         //根据用户id查询用户信息
         User user = getById(userId);
-        user.setUserPassword(newPassword);
+
+        String encodePassword = passwordEncoder.encode(newPassword);
+
+        user.setUserPassword(encodePassword);
 
         updateById(user);
         return ResponseResult.okResult();
