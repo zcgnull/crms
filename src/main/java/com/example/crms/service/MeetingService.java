@@ -10,6 +10,7 @@ import java.util.List;
 public interface MeetingService extends IService<Meeting> {
 
     ResponseResult getMeetings();
+    ResponseResult getMeeting(int meetingId);
     ResponseResult addMeeting(AddMeetingDto addMeetingDto);
     ResponseResult updateMeeting();
     ResponseResult deleteMeeting(int id);

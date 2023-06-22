@@ -1,5 +1,10 @@
 package com.example.crms;
 
+import com.example.crms.domain.entity.Meeting;
+import com.example.crms.domain.entity.User;
+import com.example.crms.domain.vo.MeetingEquipmentVo;
+import com.example.crms.domain.vo.MeetingUserVo;
+import com.example.crms.mapper.MeetingMapper;
 import com.example.crms.utils.EmailUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.io.File;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
 @SpringBootTest
 class CrmsApplicationTests {
@@ -50,4 +56,19 @@ class CrmsApplicationTests {
 //        System.out.println(encode2);
     }
 
+    @Autowired
+    private MeetingMapper meetingMapper;
+
+    @Test
+    void test3(){
+        List<MeetingEquipmentVo> meetingEquipmentByRoomId = meetingMapper.getMeetingEquipmentByRoomId(10);
+//        for (MeetingEquipmentVo meetingEquipmentVo : meetingEquipmentByRoomId) {
+//            System.out.println(meetingEquipmentVo.toString());
+//        }
+//        System.out.println(meetingEquipmentByRoomId.get(0));
+        List<MeetingUserVo> meetingUserByMeetingId = meetingMapper.getMeetingUserByMeetingId(1);
+        for (MeetingUserVo meetingUserVo : meetingUserByMeetingId) {
+            System.out.println(meetingUserVo.toString());
+        }
+    }
 }

@@ -169,7 +169,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user1 != null){
             if (user1.getUserPassword().equals(user.getUserPassword())){
                 String token = JWTUtils.generateToken(String.valueOf(user1.getUserId()));
-                return ResponseResult.okResult(200, "登录成功").ok(token);
+                Map<String, String> map = new HashMap<>();
+                map.put("token", token);
+                return ResponseResult.okResult(200, "登录成功").ok(map);
             }
         }
 

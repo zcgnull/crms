@@ -8,11 +8,17 @@ import com.example.crms.constants.MyConstants;
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.AddMeetingDto;
 import com.example.crms.domain.entity.*;
+import com.example.crms.domain.vo.MeetingEquipmentVo;
+import com.example.crms.domain.vo.MeetingUserVo;
+import com.example.crms.domain.vo.MeetingVo;
 import com.example.crms.domain.vo.RoomInfoVo;
 import com.example.crms.mapper.*;
 import com.example.crms.service.FixedRoomService;
 import com.example.crms.service.MeetingService;
 import com.example.crms.utils.BeanCopyUtils;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
@@ -42,13 +48,48 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     @Autowired
     private MeetingDeleteRemindMapper meetingDeleteRemindMapper;
     @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private DepartmentMapper departmentMapper;
+    @Autowired
     private MyConstants myConstants;
+
+
+
 
     @Override
     public ResponseResult getMeetings() {
-
-        return null;
+        List<Meeting> meetings = meetingMapper.selectList(null);
+        return ResponseResult.okResult(200, "获取所有会议室成功").ok(meetings);
     }
+
+    /**
+     * 获取会议室详细信息
+     * @param meetingId
+     * @return
+     */
+    @Override
+    public ResponseResult getMeeting(int meetingId) {
+
+        //获取此会议
+        Meeting meeting = meetingMapper.selectById(meetingId);
+        //获取此会议创建者信息
+        User user = userMapper.selectById(meeting.getUserId());
+        Department department = departmentMapper.selectById(user.getDepartmentId());
+        //获取可选设备信息
+        List<MeetingEquipmentVo> meetingEquipments = meetingMapper.getMeetingEquipmentByRoomId(meeting.getRoomId());
+        //获取会议人员
+        List<MeetingUserVo> meetingUsers = meetingMapper.getMeetingUserByMeetingId(meeting.getMeetingId());
+        //整合
+        MeetingVo meetingVo = BeanCopyUtils.copyBean(meeting, MeetingVo.class);
+        meetingVo.setMeetingEquipments(meetingEquipments);
+        meetingVo.setMeetingUsers(meetingUsers);
+        meetingVo.setUserName(user.getUserName());
+        meetingVo.setDepartment(department);
+
+        return ResponseResult.okResult(200, "获取会议信息").ok(meetingVo);
+    }
+
 
     /**
      * 创建会议

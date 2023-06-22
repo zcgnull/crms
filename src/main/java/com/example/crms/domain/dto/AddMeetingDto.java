@@ -23,6 +23,7 @@ public class AddMeetingDto {
     private Timestamp meetingStarttime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp meetingEndtime;
+    private String meetingEquipment;
     private String meetingDemand;
     private String meetingProfile;
     private Map<Integer, Integer> equipments;

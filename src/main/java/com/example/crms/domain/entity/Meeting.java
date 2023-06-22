@@ -22,6 +22,7 @@ public class Meeting {
     private String meetingName;
     private Timestamp meetingStarttime;
     private Timestamp meetingEndtime;
+    private String meetingEquipment;
     private String meetingDemand;
     private String meetingProfile;
     private int meetingState;  //会议状态， 0 未开始   1 已经结束

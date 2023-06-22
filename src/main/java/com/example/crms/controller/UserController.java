@@ -19,6 +19,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,12 +37,12 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
     @Autowired
     private UserRoleService userRoleService;
-
     @Autowired
     private MailService mailService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     @PostMapping("/login")
@@ -73,6 +74,10 @@ public class UserController {
                     User newUser = new User();
                     newUser.setUserName(registerUserDto.getUserName());
                     newUser.setUserEmail(registerUserDto.getUserEmail());
+
+//                    String encode = passwordEncoder.encode(registerUserDto.getPassword());
+//                    newUser.setUserPassword(encode);
+
                     newUser.setUserPassword(registerUserDto.getPassword());
                     newUser.setDepartmentId(registerUserDto.getDepartmentId());
                     boolean result = userService.registerUser(newUser);
@@ -140,6 +145,10 @@ public class UserController {
             if (inputCode.equals(code)) {
                 if(forgetUserDto.getPassword().equals(forgetUserDto.getConfirmPassword())){
                     // 验证通过，更改密码
+
+//                    String encode = passwordEncoder.encode(forgetUserDto.getPassword());
+//                    user.setUserPassword(encode);
+
                     user.setUserPassword(forgetUserDto.getPassword());
                     boolean result = userService.changePassword(user);
                     if (result){

@@ -22,8 +22,6 @@ public class MeetingController {
     @PostMapping("/add")
     @ApiOperation("创建会议")
     public ResponseResult addMeeting(@RequestBody AddMeetingDto addMeetingDto){
-
-
         return meetingService.addMeeting(addMeetingDto);
     }
 
@@ -38,6 +36,18 @@ public class MeetingController {
     public ResponseResult findRoom(@RequestBody AddMeetingDto addMeetingDto){
 
         return meetingService.findRoom(addMeetingDto);
+    }
+
+    @GetMapping("/info")
+    @ApiOperation("获取会议详细信息")
+    public ResponseResult getMeeting(@RequestParam int meetingId){
+        return meetingService.getMeeting(meetingId);
+    }
+
+    @GetMapping("/list")
+    @ApiOperation("获取所有会议信息")
+    public ResponseResult getMeetings(){
+        return meetingService.getMeetings();
     }
 
 
