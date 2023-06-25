@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -279,5 +280,58 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         pageVo.setRows(meetingListVos);
 
         return ResponseResult.okResult(pageVo);
+    }
+
+    @Override
+    public ResponseResult pageRoomMettingList(String someday) {
+
+        String somedayPlusOne = "";
+        try {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = dateFormat.parse(someday);
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(date);
+            calendar.add(Calendar.DATE, 1);
+            date = calendar.getTime();
+            somedayPlusOne = dateFormat.format(date);
+            System.out.println("加一天后的日期：" + somedayPlusOne);
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        LambdaQueryWrapper<Meeting> queryWrapper = new LambdaQueryWrapper();
+
+        //根据会议室Id升序排列
+        queryWrapper.orderByAsc(Meeting::getRoomId);
+        //其次根据会议开始时间升序排列
+        queryWrapper.orderByAsc(Meeting::getMeetingStarttime);
+
+        //根据时间判断会议信息是否是历史信息
+        queryWrapper.ge(Meeting::getMeetingStarttime, someday);
+        queryWrapper.lt(Meeting::getMeetingEndtime, somedayPlusOne);
+//            queryWrapper.lt(Meeting::getMeetingEndtime, someday + )
+
+
+        List<Meeting> meetings = meetingMapper.selectList(queryWrapper);
+
+        List<MeetingListVo> meetingListVos = BeanCopyUtils.copyBeanList(meetings, MeetingListVo.class);
+
+
+        for (MeetingListVo meeting: meetingListVos
+        ) {
+
+            //将RoomId转换为RoomName
+            Room room = roomMapper.selectById(meeting.getRoomId());
+            meeting.setRoomName(room.getRoomName());
+
+            //将UserId转换为userName
+            User user = userMapper.selectById(meeting.getUserId());
+            meeting.setUserName(user.getUserName());
+
+        }
+
+
+        return ResponseResult.okResult(meetingListVos);
     }
 }

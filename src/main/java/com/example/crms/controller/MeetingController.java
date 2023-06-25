@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -48,10 +49,20 @@ public class MeetingController {
      * @return
      */
     @GetMapping("/list")
-    public ResponseResult getRoleList(Integer pageNum, Integer pageSize, String roomName, Integer status){
+    public ResponseResult getMeetingList(Integer pageNum, Integer pageSize, String roomName, Integer status){
         return meetingService.pageMettingList(pageNum,pageSize,roomName,status);
     }
 
+
+    /**
+     *  根据日期查询会议室会议信息
+     * @param someday
+     * @return
+     */
+    @GetMapping("/Roomlist")
+    public ResponseResult getRoomMeetingList(String someday){
+        return meetingService.pageRoomMettingList(someday);
+    }
 
 
 
