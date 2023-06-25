@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -22,6 +23,8 @@ public class MeetingController {
     @PostMapping("/add")
     @ApiOperation("创建会议")
     public ResponseResult addMeeting(@RequestBody AddMeetingDto addMeetingDto){
+
+
         return meetingService.addMeeting(addMeetingDto);
     }
 
@@ -48,6 +51,28 @@ public class MeetingController {
     @ApiOperation("获取会议详细信息")
     public ResponseResult getMeeting(@RequestParam int meetingId){
         return meetingService.getMeeting(meetingId);
+    }
+    /**
+     *  分页查询会议室会议信息
+     * @param pageNum
+     * @param pageSize
+     * @param roomName
+     * @return
+     */
+    @GetMapping("/list")
+    public ResponseResult getMeetingList(Integer pageNum, Integer pageSize, String roomName, Integer status){
+        return meetingService.pageMettingList(pageNum,pageSize,roomName,status);
+    }
+
+
+    /**
+     *  根据日期查询会议室会议信息
+     * @param someday
+     * @return
+     */
+    @GetMapping("/Roomlist")
+    public ResponseResult getRoomMeetingList(String someday){
+        return meetingService.pageRoomMettingList(someday);
     }
 
     @GetMapping("/list")
