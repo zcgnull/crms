@@ -217,7 +217,7 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     private UserMapper userMapper;
 
     @Override
-    public ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer status) {
+    public ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer meetingState) {
 
         LambdaQueryWrapper<Meeting> queryWrapper = new LambdaQueryWrapper();
 
@@ -234,22 +234,25 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         //部门查询
         queryWrapper.eq(StringUtils.hasText(roomName),Meeting::getRoomId,roomId);
 
+        //为0则为未开始，1为历史会议
+        queryWrapper.eq(Meeting::getMeetingState, meetingState);
+
         //根据会议室Id升序排列
         queryWrapper.orderByAsc(Meeting::getRoomId);
         //其次根据会议开始时间升序排列
         queryWrapper.orderByAsc(Meeting::getMeetingStarttime);
 
         //根据时间判断会议信息是否是历史信息
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-        String format = df.format(new Date());
-        if (status == 1) {
-
-            queryWrapper.ge(Meeting::getMeetingEndtime, format);
-        }
-
-        else {
-            queryWrapper.lt(Meeting::getMeetingEndtime, format);
-        }
+//        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+//        String format = df.format(new Date());
+//        if (status == 1) {
+//
+//            queryWrapper.ge(Meeting::getMeetingEndtime, format);
+//        }
+//
+//        else {
+//            queryWrapper.lt(Meeting::getMeetingEndtime, format);
+//        }
 
         Page page = new Page(pageNum, pageSize);
         Page page1 = page(page, queryWrapper);
