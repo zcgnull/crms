@@ -12,10 +12,7 @@ import com.example.crms.domain.dto.UserAddDto;
 import com.example.crms.domain.dto.UserChangeDto;
 import com.example.crms.domain.dto.UserDto;
 import com.example.crms.domain.entity.*;
-import com.example.crms.domain.vo.PageVo;
-import com.example.crms.domain.vo.UserInfoAdminVo;
-import com.example.crms.domain.vo.UserInfoVo;
-import com.example.crms.domain.vo.UserVo;
+import com.example.crms.domain.vo.*;
 import com.example.crms.enums.AppHttpCodeEnum;
 import com.example.crms.exception.SystemException;
 import com.example.crms.mapper.*;
@@ -563,6 +560,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult statusUser(Schedule schedule) {
 
+        List userReducibleVos = new ArrayList<>();
+
         //得到所有用户名称的List集合
         List<User> users = userMapper.selectList(null);
 
@@ -595,12 +594,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
             Collection subtract = CollectionUtils.subtract(userNames, exUserNames);
 
-            return ResponseResult.okResult(subtract);
+            for (Object user:subtract
+                 ) {
+                LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                userLambdaQueryWrapper.eq(User::getUserName, user);
+                User user1 = userMapper.selectOne(userLambdaQueryWrapper);
+                userReducibleVos.add(user1);
+            }
+
+            List list = BeanCopyUtils.copyBeanList(userReducibleVos, UserReducibleVo.class);
+
+            return ResponseResult.okResult(list);
 
         }
         //所有用户都可约
-        else
-            return ResponseResult.okResult(userNames);
+        else {
+            userReducibleVos = BeanCopyUtils.copyBeanList(users, UserReducibleVo.class);
+            return ResponseResult.okResult(userReducibleVos);
+        }
+
     }
 }
 

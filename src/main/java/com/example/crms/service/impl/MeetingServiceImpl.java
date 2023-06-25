@@ -88,6 +88,8 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
 
                     //会议通知表操作
 
+
+
                     return true;
                 } catch (Exception e) {
                     System.out.println("    deleteMeeting错误为：" + e);
