@@ -59,26 +59,22 @@ public class UserController {
         User user = userService.selectOneByEmail(registerUserDto.getUserEmail());
         if (user == null){
             String inputCode = registerUserDto.getCode();
-            String code = (String) session.getAttribute("code");
-            if (code == null){
-                return ResponseResult.errorResult(400, "注册失败,请重新获取验证码");
-            }
-            if (inputCode == null){
-                session.setAttribute("code", null);
-                return ResponseResult.errorResult(400, "注册失败,验证码不能为空");
-            }
-            if (inputCode.equals(code)) {
-                if(registerUserDto.getPassword().equals(registerUserDto.getConfirmPassword())){
+//            String code = (String) session.getAttribute("code");
+//            if (code == null){
+//                return ResponseResult.errorResult(400, "注册失败,请重新获取验证码");
+//            }
+//            if (inputCode == null){
+//                session.setAttribute("code", null);
+//                return ResponseResult.errorResult(400, "注册失败,验证码不能为空");
+//            }
+//            if (inputCode.equals(code)) {
+                if(registerUserDto.getUserPassword().equals(registerUserDto.getConfirmPassword())){
                     // 验证通过
                     //通过事务改各个表来完成注册事件
                     User newUser = new User();
                     newUser.setUserName(registerUserDto.getUserName());
                     newUser.setUserEmail(registerUserDto.getUserEmail());
-
-//                    String encode = passwordEncoder.encode(registerUserDto.getPassword());
-//                    newUser.setUserPassword(encode);
-
-                    newUser.setUserPassword(registerUserDto.getPassword());
+                    newUser.setUserPassword(registerUserDto.getUserPassword());
                     newUser.setDepartmentId(registerUserDto.getDepartmentId());
                     boolean result = userService.registerUser(newUser);
                     if (result){
@@ -93,9 +89,9 @@ public class UserController {
                 // 验证失败
                 return ResponseResult.errorResult(400, "注册失败,验证码错误");
             }
-        } else {
-            return ResponseResult.errorResult(400, "注册失败,邮箱已被使用");
-        }
+//        } else {
+//            return ResponseResult.errorResult(400, "注册失败,邮箱已被使用");
+//        }
     }
 
     @GetMapping("/verify")
@@ -135,21 +131,20 @@ public class UserController {
         if (user != null){
             String inputCode = forgetUserDto.getCode();
             String code = (String) session.getAttribute("code");
-            if (code == null){
-                return ResponseResult.errorResult(400, "更改失败,请重新获取验证码");
-            }
-            if (inputCode == null){
-                session.setAttribute("code", null);
-                return ResponseResult.errorResult(400, "更改失败,验证码不能为空");
-            }
-            if (inputCode.equals(code)) {
-                if(forgetUserDto.getPassword().equals(forgetUserDto.getConfirmPassword())){
+//            if (code == null){
+//                return ResponseResult.errorResult(400, "更改失败,请重新获取验证码");
+//            }
+//            if (inputCode == null){
+//                session.setAttribute("code", null);
+//                return ResponseResult.errorResult(400, "更改失败,验证码不能为空");
+//            }
+//            if (inputCode.equals(code)) {
+                if(forgetUserDto.getUserPassword().equals(forgetUserDto.getConfirmPassword())){
                     // 验证通过，更改密码
 
-//                    String encode = passwordEncoder.encode(forgetUserDto.getPassword());
-//                    user.setUserPassword(encode);
+                    String encode = passwordEncoder.encode(forgetUserDto.getUserPassword());
+                    user.setUserPassword(encode);
 
-                    user.setUserPassword(forgetUserDto.getPassword());
                     boolean result = userService.changePassword(user);
                     if (result){
                         return ResponseResult.okResult(200, "修改成功");
@@ -163,9 +158,9 @@ public class UserController {
                 // 验证失败
                 return ResponseResult.errorResult(400, "修改失败,验证码错误");
             }
-        } else {
-            return ResponseResult.errorResult(400, "不存在此用户");
-        }
+//        } else {
+//            return ResponseResult.errorResult(400, "不存在此用户");
+//        }
     }
 
     @GetMapping("/logout")

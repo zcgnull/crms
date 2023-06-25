@@ -1,34 +1,28 @@
 package com.example.crms.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.crms.constants.MyConstants;
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.AddMeetingDto;
+import com.example.crms.domain.dto.UpdateMeetingDto;
 import com.example.crms.domain.entity.*;
 import com.example.crms.domain.vo.MeetingEquipmentVo;
 import com.example.crms.domain.vo.MeetingUserVo;
 import com.example.crms.domain.vo.MeetingVo;
 import com.example.crms.domain.vo.RoomInfoVo;
 import com.example.crms.mapper.*;
-import com.example.crms.service.FixedRoomService;
 import com.example.crms.service.MeetingService;
 import com.example.crms.utils.BeanCopyUtils;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.example.crms.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.io.File;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> implements MeetingService {
@@ -44,7 +38,7 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     @Autowired
     private RoomFixedRoomMapper roomFixedRoomMapper;
     @Autowired
-    private RoomEquipmentMapper roomEquipmentMapper;
+    private MeetingEquipmentMapper meetingEquipmentMapper;
     @Autowired
     private MeetingDeleteRemindMapper meetingDeleteRemindMapper;
     @Autowired
@@ -55,13 +49,50 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     private MyConstants myConstants;
 
 
-
-
+    /**
+     * 获取所有会议
+     * @return
+     */
     @Override
     public ResponseResult getMeetings() {
         List<Meeting> meetings = meetingMapper.selectList(null);
-        return ResponseResult.okResult(200, "获取所有会议室成功").ok(meetings);
+        Map<String, Object> map = new HashMap<>();
+        map.put("meetings", meetings);
+        map.put("total", meetings.size());
+        return ResponseResult.okResult(200, "获取所有会议室成功").ok(map);
     }
+
+    /**
+     * 获取当前用户预定的所有会议
+     * @return
+     */
+    @Override
+    public ResponseResult getMyMeetings() {
+        //获取当前用户id
+        Integer userId = SecurityUtils.getUserId();
+        LambdaQueryWrapper<Meeting> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Meeting::getUserId, userId);
+        List<Meeting> meetings = meetingMapper.selectList(queryWrapper);
+        Map<String, List<Meeting>> map = new HashMap<>();
+        map.put("meetings", meetings);
+        return ResponseResult.okResult(200, "获取我参加的会议").ok(map);
+    }
+
+    /**
+     * 获取当前用户参加的会议
+     * @return
+     */
+    @Override
+    public ResponseResult getAttend() {
+        //获取当前用户id
+        Integer userId = SecurityUtils.getUserId();
+        List<Meeting> attendMeetingByUserId = meetingMapper.getAttendMeetingByUserId(userId);
+        Map<String, Object> map = new HashMap<>();
+        map.put("meetings", attendMeetingByUserId);
+        map.put("total", attendMeetingByUserId.size());
+        return ResponseResult.okResult(200,"获取需要参加的会议").ok(map);
+    }
+
 
     /**
      * 获取会议室详细信息
@@ -77,7 +108,7 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         User user = userMapper.selectById(meeting.getUserId());
         Department department = departmentMapper.selectById(user.getDepartmentId());
         //获取可选设备信息
-        List<MeetingEquipmentVo> meetingEquipments = meetingMapper.getMeetingEquipmentByRoomId(meeting.getRoomId());
+        List<MeetingEquipmentVo> meetingEquipments = meetingMapper.getMeetingEquipmentByMeetingId(meeting.getMeetingId());
         //获取会议人员
         List<MeetingUserVo> meetingUsers = meetingMapper.getMeetingUserByMeetingId(meeting.getMeetingId());
         //整合
@@ -87,8 +118,12 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         meetingVo.setUserName(user.getUserName());
         meetingVo.setDepartment(department);
 
-        return ResponseResult.okResult(200, "获取会议信息").ok(meetingVo);
+        Map<String, MeetingVo> map = new HashMap<>();
+        map.put("meeting", meetingVo);
+        return ResponseResult.okResult(200, "获取会议信息").ok(map);
     }
+
+
 
 
     /**
@@ -98,50 +133,105 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
      */
     @Override
     public ResponseResult addMeeting(AddMeetingDto addMeetingDto) {
+        Timestamp startTime = addMeetingDto.getMeetingStarttime();
+        Timestamp endTime = addMeetingDto.getMeetingEndtime();
+        //获取当前用户
+        User userNow = SecurityUtils.getUser();
+        //判断当前是否能添加次会议，主要是看创建过程中是否有其他人创建
+        //查看当前会议室和与当前会议室互斥会议室的未开始会议
+        List<Meeting> meetings = meetingMapper.getMettingsByRoomId(addMeetingDto.getRoomId());
+        //查看时间是否冲突
+        boolean flag = false;
+        for (Meeting meeting : meetings) {
+            if (startTime.after(meeting.getMeetingEndtime()) || endTime.before(meeting.getMeetingStarttime())){
 
-        //验证是否能添加会议，会议室互斥，时间互斥
-
-        Boolean result = transactionTemplate.execute(new TransactionCallback<Boolean>() {
-            @Override
-            public Boolean doInTransaction(TransactionStatus transactionStatus) {
-                try {
-                    //添加到meenting表
-                    Meeting meeting = BeanCopyUtils.copyBean(addMeetingDto, Meeting.class);
-                    meeting.setMeetingState(0);
-                    meetingMapper.insert(meeting);
-                    //添加到meeting_user表，整个部门的人添加，单个人添加
-                    for (Integer userid : addMeetingDto.getUsers()) {
-                        meetingUserMapper.insert(new MeetingUser(meeting.getMeetingId(), userid));
-                    }
-                    //添加可选设备到room_equipment
-                    Map<Integer, Integer> equipments = addMeetingDto.getEquipments();
-                    Set<Map.Entry<Integer, Integer>> entries = equipments.entrySet();
-                    for (Map.Entry<Integer, Integer> entry : entries) {
-                        roomEquipmentMapper.insert(new RoomEquipment(0, meeting.getRoomId(), entry.getKey(), entry.getValue()));
-                    }
-                    //更改equipment表中的设备个数
-
-                    //会议通知表操作
-
-                    return true;
-                } catch (Exception e) {
-                    System.out.println("    deleteMeeting错误为：" + e);
-                    //回滚
-                    transactionStatus.setRollbackOnly();
-                    return false;
-                }
+            } else {
+                flag = true;
+                break;
             }
-        });
-        if (result){
-            return ResponseResult.okResult(200, "会议创建成功");
-        } else {
-            return ResponseResult.errorResult(400, "会议创建失败");
         }
+
+        if (!flag){
+            Boolean result = transactionTemplate.execute(new TransactionCallback<Boolean>() {
+                @Override
+                public Boolean doInTransaction(TransactionStatus transactionStatus) {
+                    try {
+                        //添加到meenting表
+                        Meeting meeting = BeanCopyUtils.copyBean(addMeetingDto, Meeting.class);
+                        meeting.setMeetingState(0);
+                        meeting.setUserId(userNow.getUserId());
+                        meetingMapper.insert(meeting);
+                        //添加到meeting_user表，整个部门的人添加，单个人添加
+                        for (Integer userid : addMeetingDto.getUsers()) {
+                            meetingUserMapper.insert(new MeetingUser(meeting.getMeetingId(), userid));
+                        }
+                        //添加可选设备到meeting_equipment
+                        Map<Integer, Integer> equipments = addMeetingDto.getEquipments();
+                        Set<Map.Entry<Integer, Integer>> entries = equipments.entrySet();
+                        for (Map.Entry<Integer, Integer> entry : entries) {
+                            meetingEquipmentMapper.insert(new MeetingEquipment(0, meeting.getMeetingId(), entry.getKey(), entry.getValue()));
+                        }
+                        //更改equipment表中的设备个数
+
+                        //会议通知表操作
+
+                        return true;
+                    } catch (Exception e) {
+                        System.out.println("    deleteMeeting错误为：" + e);
+                        //回滚
+                        transactionStatus.setRollbackOnly();
+                        return false;
+                    }
+                }
+            });
+            if (result){
+                return ResponseResult.okResult(200, "会议创建成功");
+            } else {
+                return ResponseResult.errorResult(400, "会议创建失败");
+            }
+        }
+        return ResponseResult.errorResult(400, "此会议室刚刚已被占用");
     }
 
     @Override
-    public ResponseResult updateMeeting() {
-        return null;
+    public ResponseResult updateMeeting(UpdateMeetingDto updateMeetingDto) {
+
+        //获取此会议
+        Meeting meeting = meetingMapper.selectById(updateMeetingDto.getMeetingId());
+        //获取可选设备信息
+        List<MeetingEquipmentVo> meetingEquipments = meetingMapper.getMeetingEquipmentByMeetingId(meeting.getMeetingId());
+        //获取会议人员
+        List<MeetingUserVo> meetingUsers = meetingMapper.getMeetingUserByMeetingId(meeting.getMeetingId());
+
+        //与修改后对比
+//        for (MeetingEquipmentVo meetingEquipment : meetingEquipments) {
+//            for (Map.Entry<Integer, Integer> integerIntegerEntry : updateMeetingDto.getEquipments().entrySet()) {
+//                integerIntegerEntry.getKey()
+//            }
+//        }
+
+        //用户操作
+        List<Integer> usersOld = new ArrayList<>();
+        for (MeetingUserVo meetingUser : meetingUsers) {
+            usersOld.add(meetingUser.getUserId());
+        }
+        List<Integer> usersNew = updateMeetingDto.getUsers();
+        //找到old中不在new中的元素
+        List<Integer> diff1 = new ArrayList<>(usersOld);
+        diff1.removeAll(usersNew);
+        //删除这些user
+
+        //发送不需要参加的通知
+
+        //找到new中不在old中的元素
+        List<Integer> diff2 = new ArrayList<>(usersNew);
+        diff2.removeAll(usersOld);
+        //新增这些user
+
+        //发送邀请会议通知
+
+
+        return ResponseResult.okResult(200, "会议修改成功").ok(updateMeetingDto);
     }
 
     /**
@@ -165,6 +255,11 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
                     LambdaQueryWrapper<MeetingUser> queryWrapper = new LambdaQueryWrapper<>();
                     queryWrapper.eq(MeetingUser::getMeetingId, id);
                     meetingUserMapper.delete(queryWrapper);
+                    //删除可选设备
+                    LambdaQueryWrapper<MeetingEquipment> queryWrapper1 = new LambdaQueryWrapper<>();
+                    queryWrapper1.eq(MeetingEquipment::getMeetingId, id);
+                    meetingEquipmentMapper.delete(queryWrapper1);
+
                     return true;
                 } catch (Exception e) {
                     System.out.println("    deleteMeeting错误为：" + e);
@@ -181,6 +276,8 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         }
     }
 
+
+
     /**
      * 根据时间查找符合条件的会议室
      * @param addMeetingDto
@@ -188,6 +285,9 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
      */
     @Override
     public ResponseResult findRoom(AddMeetingDto addMeetingDto) {
+        //获取当前用户
+        User userNow = SecurityUtils.getUser();
+
         Timestamp startTime = addMeetingDto.getMeetingStarttime();
         Timestamp endTime = addMeetingDto.getMeetingEndtime();
         //找到所有未开始会议
@@ -199,10 +299,27 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
 
         Map<Integer, RoomInfoVo> roomInfoVoMap = new HashMap<>();
         for (Room room : rooms) {
-            roomInfoVoMap.put(room.getRoomId(), BeanCopyUtils.copyBean(room, RoomInfoVo.class));
+            //找到会议室相应的使用部门权限
+            List<Department> departments = roomMapper.getDepartmentsByRoomId(room.getRoomId());
+            RoomInfoVo roomInfoVo = BeanCopyUtils.copyBean(room, RoomInfoVo.class);
+            roomInfoVo.setDepartments(departments);
+            //查看使用权限
+            boolean flag = false;
+            for (Department department : departments) {
+                if (department.getDepartmentId() == userNow.getDepartmentId()){
+                    flag = true;
+                    break;
+                }
+            }
+            if (!flag){
+                //用户无权使用此会议室
+                roomInfoVo.setState(4);
+            }
+            roomInfoVoMap.put(room.getRoomId(), roomInfoVo);
         }
         //对比时间
         for (Meeting meeting : meetings) {
+
             if (startTime.after(meeting.getMeetingEndtime()) || endTime.before(meeting.getMeetingStarttime())){
 //                if (roomInfoVoMap.get(meeting.getRoomId()).getState() == 0){
 //                    //此会议室可以加入
@@ -210,7 +327,9 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
 //                }
             } else {
                 //此会议室已经被使用
-                roomInfoVoMap.get(meeting.getRoomId()).setState(2);
+                if (roomInfoVoMap.get(meeting.getRoomId()).getState() != 4){
+                    roomInfoVoMap.get(meeting.getRoomId()).setState(2);
+                }
                 roomInfoVoMap.get(meeting.getRoomId()).getMeetings().add(meeting);
                 //查看与此间会议室互斥的会议室
                 int roomId = roomInfoVoMap.get(meeting.getRoomId()).getRoomId();
@@ -233,17 +352,15 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
             }
         }
 
-
-
-
         List<RoomInfoVo> roomInfoVoList = new ArrayList<>();
         Iterator<Map.Entry<Integer, RoomInfoVo>> entries = roomInfoVoMap.entrySet().iterator();
         while (entries.hasNext()) {
             Map.Entry<Integer, RoomInfoVo> entry = entries.next();
             roomInfoVoList.add(entry.getValue());
         }
-
-
-        return ResponseResult.okResult().ok(roomInfoVoList);
+        Map<String, Object> map = new HashMap<>();
+        map.put("roomInfo", roomInfoVoList);
+        map.put("total", roomInfoVoList.size());
+        return ResponseResult.okResult().ok(map);
     }
 }

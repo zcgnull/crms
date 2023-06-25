@@ -201,6 +201,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             @Override
             public Boolean doInTransaction(TransactionStatus transactionStatus) {
                 try {
+                    //加密密码
+                    String encode = passwordEncoder.encode(newUser.getUserPassword());
+                    newUser.setUserPassword(encode);
                     userMapper.insert(newUser);
                     //注册时，默认角色为普通员工
                     UserRole userRole = new UserRole();

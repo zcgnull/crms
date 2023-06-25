@@ -61,7 +61,7 @@ class CrmsApplicationTests {
 
     @Test
     void test3(){
-        List<MeetingEquipmentVo> meetingEquipmentByRoomId = meetingMapper.getMeetingEquipmentByRoomId(10);
+        List<MeetingEquipmentVo> meetingEquipmentByRoomId = meetingMapper.getMeetingEquipmentByMeetingId(10);
 //        for (MeetingEquipmentVo meetingEquipmentVo : meetingEquipmentByRoomId) {
 //            System.out.println(meetingEquipmentVo.toString());
 //        }

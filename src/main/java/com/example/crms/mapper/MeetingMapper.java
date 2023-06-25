@@ -15,7 +15,9 @@ import java.util.List;
 @Mapper
 public interface MeetingMapper extends BaseMapper<Meeting> {
 
-    List<MeetingEquipmentVo> getMeetingEquipmentByRoomId(int roomId);
+    List<MeetingEquipmentVo> getMeetingEquipmentByMeetingId(int meetingId);
     List<MeetingUserVo> getMeetingUserByMeetingId(int meetingId);
+    List<Meeting> getMettingsByRoomId(int roomId);
+    List<Meeting> getAttendMeetingByUserId(int userId);
 
 }

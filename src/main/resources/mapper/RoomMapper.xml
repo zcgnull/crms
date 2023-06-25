@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.crms.mapper.RoomMapper">
+    <select id="getDepartmentsByRoomId" resultType="com.example.crms.domain.entity.Department"
+            parameterType="int">
+        SELECT
+            department.*
+        FROM
+            department,room_department
+        WHERE
+            department.department_id = room_department.department_id
+          AND
+            room_department.room_id = #{roomId}
+    </select>
+</mapper>

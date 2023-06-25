@@ -17,11 +17,12 @@ import java.sql.Timestamp;
 public class Room {
     @TableId(type = IdType.AUTO)
     private int roomId;
-    private String roomName;
-    private Timestamp roomCreattime;
-    private String roomLocation;
-    private int roomCapacity;
-    private String roomDescription;
-    private String roomPicurl;
-    private int roomState;
+    private String roomName;  //名称
+    private Timestamp roomCreattime; //创建时间
+    private String roomLocation;  //位置
+    private String roomEquipment;  //固定设备
+    private int roomCapacity;  //最大人数
+    private String roomDescription; //会议室描述
+    private String roomPicurl; //图片地址
+    private int roomState;   //状态
 }

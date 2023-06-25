@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class ForgetUserDto {
     private String userEmail;
     private String code;
-    private String password;
+    private String userPassword;
     private String confirmPassword;
 
 }

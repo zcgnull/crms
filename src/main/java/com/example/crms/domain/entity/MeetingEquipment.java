@@ -10,12 +10,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("room_equipment")
-public class RoomEquipment {
+@TableName("meeting_equipment")
+public class MeetingEquipment {
 
     @TableId(type = IdType.AUTO)
     private int id;
-    private int roomId;
+    private int meetingId;
     private int equipmentId;
     private int equipmentNum;
 

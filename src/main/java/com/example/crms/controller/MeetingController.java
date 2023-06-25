@@ -2,6 +2,7 @@ package com.example.crms.controller;
 
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.AddMeetingDto;
+import com.example.crms.domain.dto.UpdateMeetingDto;
 import com.example.crms.service.MeetingService;
 import com.example.crms.service.MeetingUserService;
 import io.swagger.annotations.ApiOperation;
@@ -16,8 +17,7 @@ public class MeetingController {
 
     @Autowired
     private MeetingService meetingService;
-    @Autowired
-    private MeetingUserService meetingUserService;
+
 
     @PostMapping("/add")
     @ApiOperation("创建会议")
@@ -29,6 +29,12 @@ public class MeetingController {
     @ApiOperation("删除会议")
     public ResponseResult deleteMeeting(@RequestParam int id){
         return meetingService.deleteMeeting(id);
+    }
+
+    @PutMapping("update")
+    @ApiOperation("更新会议信息")
+    public ResponseResult updateMeeting(@RequestBody UpdateMeetingDto updateMeetingDto){
+        return meetingService.updateMeeting(updateMeetingDto);
     }
 
     @PostMapping("/findRoom")
@@ -50,7 +56,15 @@ public class MeetingController {
         return meetingService.getMeetings();
     }
 
+    @GetMapping("/myMeetings")
+    @ApiOperation("获取我的预定的会议信息")
+    public ResponseResult getMyMeetings(){
+        return meetingService.getMyMeetings();
+    }
 
-
-
+    @GetMapping("/myAttend")
+    @ApiOperation("获取我的预定的会议信息")
+    public ResponseResult getMyAttend(){
+        return meetingService.getAttend();
+    }
 }

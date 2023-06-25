@@ -19,7 +19,7 @@ public class AddRoomDto {
     private String roomDescription;
     private String roomPicurl;
     private List<Integer> departments;
-    private Map<Integer, Integer> equipments;
+    private String roomEquipment;
     private List<Integer> fixedRoomIds;
 
 }

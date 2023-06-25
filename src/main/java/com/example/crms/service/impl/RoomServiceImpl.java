@@ -24,10 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements RoomService {
@@ -71,9 +68,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
                     Timestamp creattime = new Timestamp(date.getTime());
                     room.setRoomCreattime(creattime);
                     int insert = roomMapper.insert(room);
-                    //room_equment表添加新纪录
 
-                    //更改equment表中的可用数量
 
                     List<Integer> fixedRoomIds = addRoomDto.getFixedRoomIds();
                     for (Integer fixedRoomId : fixedRoomIds) {
@@ -189,9 +184,6 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
                             roomFixedRoomMapper.delete(queryWrapper);
                             //删除room_department表中记录
                             roomDepartmentMapper.delete(queryWrapper);
-                            //room_equment表删除纪录
-
-                            //更改equment表中的可用数量
 
                             return true;
                         } catch (Exception e) {
@@ -244,9 +236,6 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
                             //修改room表
                             Room updateRoom = BeanCopyUtils.copyBean(updateRoomDto, Room.class);
                             roomMapper.updateById(updateRoom);
-                            //修改：先删除再添加
-                            //修改room_equipment
-
                             //修改room_fixed_room和fixed_room中的状态
                             //找到room_fixed_room表中此会议室对应的fixed_room
                             QueryWrapper queryWrapper = new QueryWrapper();
@@ -325,8 +314,11 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
             RoomVo roomVo = getRoomOtherInfo(room);
             roomVoList.add(roomVo);
         }
+        Map<String, Object> map = new HashMap<>();
+        map.put("rooms", roomVoList);
+        map.put("total", roomVoList.size());
 
-        return ResponseResult.errorResult(200, "所有会议室信息").ok(roomVoList);
+        return ResponseResult.errorResult(200, "所有会议室信息").ok(map);
     }
 
 
@@ -342,7 +334,11 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         Room room = roomMapper.selectOne(queryWrapper);
         if (room != null){
             RoomVo roomVo = getRoomOtherInfo(room);
-            return ResponseResult.okResult(200, "查找成功").ok(roomVo);
+            Map<String, Object> map = new HashMap<>();
+            map.put("rooms", roomVo);
+            map.put("total", 1);
+
+            return ResponseResult.errorResult(200, "查找会议室").ok(map);
         } else {
             return ResponseResult.okResult(400, "没有此会议室");
         }
@@ -386,7 +382,12 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
             RoomVo roomVo = getRoomOtherInfo(room);
             roomVoList.add(roomVo);
         }
-        return ResponseResult.okResult().ok(roomVoList);
+        Map<String, Object> map = new HashMap<>();
+        map.put("rooms", roomVoList);
+        map.put("total", roomVoList.size());
+
+        return ResponseResult.errorResult(200, "查询会议室").ok(map);
+
     }
 
 
