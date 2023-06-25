@@ -3,11 +3,14 @@ package com.example.crms.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.crms.constants.MyConstants;
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.AddMeetingDto;
 import com.example.crms.domain.entity.*;
+import com.example.crms.domain.vo.MeetingListVo;
+import com.example.crms.domain.vo.PageVo;
 import com.example.crms.domain.vo.RoomInfoVo;
 import com.example.crms.mapper.*;
 import com.example.crms.service.FixedRoomService;
@@ -18,9 +21,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -204,5 +209,75 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
 
 
         return ResponseResult.okResult().ok(roomInfoVoList);
+    }
+
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @Override
+    public ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer status) {
+
+        LambdaQueryWrapper<Meeting> queryWrapper = new LambdaQueryWrapper();
+
+
+        int roomId = -1;
+        if (StringUtils.hasText(roomName)) {
+
+            LambdaQueryWrapper<Room> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(Room::getRoomName,roomName);
+            Room room = roomMapper.selectOne(lambdaQueryWrapper);
+            roomId = room.getRoomId();
+        }
+
+        //部门查询
+        queryWrapper.eq(StringUtils.hasText(roomName),Meeting::getRoomId,roomId);
+
+        //根据会议室Id升序排列
+        queryWrapper.orderByAsc(Meeting::getRoomId);
+        //其次根据会议开始时间升序排列
+        queryWrapper.orderByAsc(Meeting::getMeetingStarttime);
+
+        //根据时间判断会议信息是否是历史信息
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        String format = df.format(new Date());
+        if (status == 1) {
+
+            queryWrapper.ge(Meeting::getMeetingEndtime, format);
+        }
+
+        else {
+            queryWrapper.lt(Meeting::getMeetingEndtime, format);
+        }
+
+        Page page = new Page(pageNum, pageSize);
+        Page page1 = page(page, queryWrapper);
+
+        PageVo pageVo = new PageVo();
+        pageVo.setTotal(page1.getTotal());
+
+        List<Meeting> meetings = page1.getRecords();
+
+
+        List<MeetingListVo> meetingListVos = BeanCopyUtils.copyBeanList(meetings, MeetingListVo.class);
+
+
+        for (MeetingListVo meeting: meetingListVos
+             ) {
+
+            //将RoomId转换为RoomName
+            Room room = roomMapper.selectById(meeting.getRoomId());
+            meeting.setRoomName(room.getRoomName());
+
+            //将UserId转换为userName
+            User user = userMapper.selectById(meeting.getUserId());
+            meeting.setUserName(user.getUserName());
+
+        }
+
+
+        pageVo.setRows(meetingListVos);
+
+        return ResponseResult.okResult(pageVo);
     }
 }

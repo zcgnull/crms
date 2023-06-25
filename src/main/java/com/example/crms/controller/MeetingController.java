@@ -40,6 +40,18 @@ public class MeetingController {
         return meetingService.findRoom(addMeetingDto);
     }
 
+    /**
+     *  分页查询会议室会议信息
+     * @param pageNum
+     * @param pageSize
+     * @param roomName
+     * @return
+     */
+    @GetMapping("/list")
+    public ResponseResult getRoleList(Integer pageNum, Integer pageSize, String roomName, Integer status){
+        return meetingService.pageMettingList(pageNum,pageSize,roomName,status);
+    }
+
 
 
 
