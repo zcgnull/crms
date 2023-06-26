@@ -24,6 +24,13 @@ public class DepartmentController {
         return departmentService.getAllDepartmentNames();
     }
 
+    //所有部门名称信息
+    @GetMapping("/allDepartmentNames_Login")
+    public List<String> departmentInfoLogin(){
+
+        return departmentService.getAllDepartmentNames();
+    }
+
     /**
      *  分页查询部门列表
      * @param pageNum

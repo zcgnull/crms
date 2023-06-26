@@ -65,6 +65,7 @@ public class MeetingController {
      * @param pageNum
      * @param pageSize
      * @param roomName
+     * @param status
      * @return
      */
     @GetMapping("/list")

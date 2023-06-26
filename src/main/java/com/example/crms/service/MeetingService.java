@@ -21,7 +21,7 @@ public interface MeetingService extends IService<Meeting> {
     ResponseResult deleteMeeting(int id);
     ResponseResult findRoom(MeetingTimeDto meetingTimeDto);
 
-    ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer status);
+    ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer meetingState);
 
     ResponseResult pageRoomMettingList(String someday);
     ResponseResult findEquipment(MeetingTimeDto meetingTimeDto);
