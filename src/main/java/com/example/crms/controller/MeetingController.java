@@ -46,12 +46,12 @@ public class MeetingController {
      * @param pageNum
      * @param pageSize
      * @param roomName
-     * @param meetingState
+     * @param status
      * @return
      */
     @GetMapping("/list")
-    public ResponseResult getMeetingList(Integer pageNum, Integer pageSize, String roomName, Integer meetingState){
-        return meetingService.pageMettingList(pageNum,pageSize,roomName,meetingState);
+    public ResponseResult getMeetingList(Integer pageNum, Integer pageSize, String roomName, Integer status){
+        return meetingService.pageMettingList(pageNum,pageSize,roomName,status);
     }
 
 

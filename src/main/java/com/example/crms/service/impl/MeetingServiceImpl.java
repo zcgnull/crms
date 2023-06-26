@@ -219,7 +219,7 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     private UserMapper userMapper;
 
     @Override
-    public ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer meetingState) {
+    public ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer status) {
 
         LambdaQueryWrapper<Meeting> queryWrapper = new LambdaQueryWrapper();
 
@@ -237,7 +237,7 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         queryWrapper.eq(StringUtils.hasText(roomName),Meeting::getRoomId,roomId);
 
         //为0则为未开始，1为历史会议
-        queryWrapper.eq(Meeting::getMeetingState, meetingState);
+        queryWrapper.eq(Meeting::getMeetingState, status);
 
         //根据会议室Id升序排列
         queryWrapper.orderByAsc(Meeting::getRoomId);
