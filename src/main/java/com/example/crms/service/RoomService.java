@@ -15,11 +15,13 @@ public interface RoomService extends IService<Room> {
 
     ResponseResult updateRoom(UpdateRoomDto updateRoomDto);
 
-    ResponseResult allRoomInfo(int pageNum);
+    ResponseResult allRoomInfo(int pageNum, int pageSize);
 
     ResponseResult findRoomByName(String roomName);
 
     ResponseResult uploadPic(MultipartFile file);
 
     ResponseResult findRoomByStateOrLocationOrDepartment(Integer roomState, String roomLocation, Integer departmentId);
+
+    ResponseResult getFixedRoom();
 }

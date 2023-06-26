@@ -5,7 +5,7 @@
     <select id="getMeetingEquipmentByMeetingId" resultType="com.example.crms.domain.vo.MeetingEquipmentVo"
             parameterType="int">
         SELECT
-            meeting_equipment.*
+            meeting_equipment.*,equipment.equipment_name
         FROM
             meeting_equipment,equipment
         WHERE
@@ -31,6 +31,6 @@
     </select>
     <select id="getAttendMeetingByUserId" resultType="com.example.crms.domain.entity.Meeting"
             parameterType="int">
-        SELECT meeting.* FROM meeting WHERE meeting_id IN (SELECT meeting_id FROM meeting_user WHERE user_id = #{userId})
+        SELECT meeting.* FROM meeting WHERE meeting_id IN (SELECT meeting_id FROM meeting_user WHERE user_id = #{userId}) LIMIT #{pageNum},#{pageSize}
     </select>
 </mapper>

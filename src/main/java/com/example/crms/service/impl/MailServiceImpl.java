@@ -21,7 +21,7 @@ public class MailServiceImpl implements MailService {
      * @param subject 主题
      * @param content 内容
      */
-    public void sendMail(String to, String subject, String content) throws MessagingException {
+    public boolean sendMail(String to, String subject, String content) throws MessagingException {
         // 创建邮件消息
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -33,8 +33,15 @@ public class MailServiceImpl implements MailService {
         helper.setSubject(subject);
         // 设置内容
         helper.setText(content, true);
-        // 发送邮件
-        mailSender.send(message);
+        try{
+            // 发送邮件
+            mailSender.send(message);
+            return true;
+        } catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+
     }
 
 

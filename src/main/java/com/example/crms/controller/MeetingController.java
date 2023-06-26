@@ -2,6 +2,7 @@ package com.example.crms.controller;
 
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.AddMeetingDto;
+import com.example.crms.domain.dto.MeetingTimeDto;
 import com.example.crms.domain.dto.UpdateMeetingDto;
 import com.example.crms.service.MeetingService;
 import com.example.crms.service.MeetingUserService;
@@ -42,9 +43,16 @@ public class MeetingController {
 
     @PostMapping("/findRoom")
     @ApiOperation("根据开始结束时间查找未占用的会议室")
-    public ResponseResult findRoom(@RequestBody AddMeetingDto addMeetingDto){
+    public ResponseResult findRoom(@RequestBody MeetingTimeDto meetingTimeDto){
 
-        return meetingService.findRoom(addMeetingDto);
+        return meetingService.findRoom(meetingTimeDto);
+    }
+
+    @PostMapping("/findEquipment")
+    @ApiOperation("根据开始结束时间查找未占用的可选设备")
+    public ResponseResult findEquipment(@RequestBody MeetingTimeDto meetingTimeDto){
+
+        return meetingService.findEquipment(meetingTimeDto);
     }
 
     @GetMapping("/info")
@@ -75,21 +83,21 @@ public class MeetingController {
         return meetingService.pageRoomMettingList(someday);
     }
 
-    @GetMapping("/list")
+    @GetMapping("/all")
     @ApiOperation("获取所有会议信息")
-    public ResponseResult getMeetings(){
-        return meetingService.getMeetings();
+    public ResponseResult getMeetings(@RequestParam(defaultValue = "1") Integer pageNum,@RequestParam(defaultValue = "10")  Integer pageSize){
+        return meetingService.getMeetings(pageNum, pageSize);
     }
 
     @GetMapping("/myMeetings")
     @ApiOperation("获取我的预定的会议信息")
-    public ResponseResult getMyMeetings(){
-        return meetingService.getMyMeetings();
+    public ResponseResult getMyMeetings(@RequestParam(defaultValue = "1") Integer pageNum,@RequestParam(defaultValue = "10")  Integer pageSize){
+        return meetingService.getMyMeetings(pageNum, pageSize);
     }
 
     @GetMapping("/myAttend")
-    @ApiOperation("获取我的预定的会议信息")
-    public ResponseResult getMyAttend(){
-        return meetingService.getAttend();
+    @ApiOperation("获取我的需要参加的会议信息")
+    public ResponseResult getMyAttend(@RequestParam(defaultValue = "1") Integer pageNum,@RequestParam(defaultValue = "10") Integer pageSize){
+        return meetingService.getAttend(pageNum, pageSize);
     }
 }

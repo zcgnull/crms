@@ -13,5 +13,5 @@ public class RegisterUserDto {
     private String code;
     private String userPassword;
     private String confirmPassword;
-    private Integer departmentId;
+    private String departmentName;
 }

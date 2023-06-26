@@ -2,12 +2,14 @@ package com.example.crms.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.crms.constants.MyConstants;
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.AddMeetingDto;
+import com.example.crms.domain.dto.MeetingTimeDto;
 import com.example.crms.domain.dto.UpdateMeetingDto;
 import com.example.crms.domain.entity.*;
 import com.example.crms.domain.vo.MeetingEquipmentVo;
@@ -56,6 +58,8 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     @Autowired
     private DepartmentMapper departmentMapper;
     @Autowired
+    private EquipmentMapper equipmentMapper;
+    @Autowired
     private MyConstants myConstants;
 
 
@@ -64,8 +68,11 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
      * @return
      */
     @Override
-    public ResponseResult getMeetings() {
-        List<Meeting> meetings = meetingMapper.selectList(null);
+    public ResponseResult getMeetings(Integer pageNum, Integer pageSize) {
+        //分页对象，传入当前页码及每页的数量
+        Page<Meeting> page = new Page(pageNum,pageSize);
+        Page<Meeting> records = meetingMapper.selectPage(page, null);
+        List<Meeting> meetings = records.getRecords();
         Map<String, Object> map = new HashMap<>();
         map.put("meetings", meetings);
         map.put("total", meetings.size());
@@ -77,15 +84,17 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
      * @return
      */
     @Override
-    public ResponseResult getMyMeetings() {
+    public ResponseResult getMyMeetings(Integer pageNum, Integer pageSize) {
         //获取当前用户id
         Integer userId = SecurityUtils.getUserId();
         LambdaQueryWrapper<Meeting> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Meeting::getUserId, userId);
-        List<Meeting> meetings = meetingMapper.selectList(queryWrapper);
+        Page<Meeting> page = new Page(pageNum,pageSize);
+        Page<Meeting> records = meetingMapper.selectPage(page, queryWrapper);
+        List<Meeting> meetings = records.getRecords();
         Map<String, List<Meeting>> map = new HashMap<>();
         map.put("meetings", meetings);
-        return ResponseResult.okResult(200, "获取我参加的会议").ok(map);
+        return ResponseResult.okResult(200, "获取我预定的会议").ok(map);
     }
 
     /**
@@ -93,10 +102,10 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
      * @return
      */
     @Override
-    public ResponseResult getAttend() {
+    public ResponseResult getAttend(Integer pageNum, Integer pageSize) {
         //获取当前用户id
         Integer userId = SecurityUtils.getUserId();
-        List<Meeting> attendMeetingByUserId = meetingMapper.getAttendMeetingByUserId(userId);
+        List<Meeting> attendMeetingByUserId = meetingMapper.getAttendMeetingByUserId(userId, (pageNum-  1) * pageSize, pageSize);
         Map<String, Object> map = new HashMap<>();
         map.put("meetings", attendMeetingByUserId);
         map.put("total", attendMeetingByUserId.size());
@@ -121,12 +130,15 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         List<MeetingEquipmentVo> meetingEquipments = meetingMapper.getMeetingEquipmentByMeetingId(meeting.getMeetingId());
         //获取会议人员
         List<MeetingUserVo> meetingUsers = meetingMapper.getMeetingUserByMeetingId(meeting.getMeetingId());
+        //查找会议室
+        Room room = roomMapper.selectById(meeting.getRoomId());
         //整合
         MeetingVo meetingVo = BeanCopyUtils.copyBean(meeting, MeetingVo.class);
         meetingVo.setMeetingEquipments(meetingEquipments);
         meetingVo.setMeetingUsers(meetingUsers);
         meetingVo.setUserName(user.getUserName());
         meetingVo.setDepartment(department);
+        meetingVo.setRoom(room);
 
         Map<String, MeetingVo> map = new HashMap<>();
         map.put("meeting", meetingVo);
@@ -150,6 +162,8 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         //判断当前是否能添加次会议，主要是看创建过程中是否有其他人创建
         //查看当前会议室和与当前会议室互斥会议室的未开始会议
         List<Meeting> meetings = meetingMapper.getMettingsByRoomId(addMeetingDto.getRoomId());
+        //获取所有设备
+        List<Equipment> equipments = equipmentMapper.selectList(null);
         //查看时间是否冲突
         boolean flag = false;
         for (Meeting meeting : meetings) {
@@ -160,8 +174,49 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
                 break;
             }
         }
-
         if (!flag){
+            //判断可选设备是否可以加入
+            if (addMeetingDto.getEquipments().size() > 0){
+                //找到所有未开始会议
+                LambdaQueryWrapper<Meeting> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(Meeting::getMeetingState, 0);
+                List<Meeting> meetings2 = meetingMapper.selectList(wrapper);
+
+                //对比时间
+                for (Meeting meeting : meetings2) {
+
+                    if (startTime.after(meeting.getMeetingEndtime()) || endTime.before(meeting.getMeetingStarttime())){
+//                if (roomInfoVoMap.get(meeting.getRoomId()).getState() == 0){
+//                    //此会议室可以加入
+//                    roomInfoVoMap.get(meeting.getRoomId()).setState(1);
+//                }
+                    } else {
+                        //找到此会议绑定的可选设备
+                        LambdaQueryWrapper<MeetingEquipment> queryWrapper = new LambdaQueryWrapper<>();
+                        queryWrapper.eq(MeetingEquipment::getMeetingId, meeting.getMeetingId());
+                        List<MeetingEquipment> meetingEquipments = meetingEquipmentMapper.selectList(queryWrapper);
+                        //双重for 减操作  待优化
+                        for (int i = 0; i < equipments.size(); i++) {
+                            for (MeetingEquipment meetingEquipment : meetingEquipments) {
+                                //有则减
+                                if (meetingEquipment.getEquipmentId() == equipments.get(i).getEquipmentId()){
+                                    equipments.get(i).setEquipmentNum(equipments.get(i).getEquipmentNum() - meetingEquipment.getEquipmentNum());
+                                }
+                            }
+                        }
+                    }
+                }
+                //对比是否可以获取equipment
+                for (Equipment equipment : equipments) {
+                    for (Map.Entry<Integer, Integer> integerIntegerEntry : addMeetingDto.getEquipments().entrySet()) {
+                        if (equipment.getEquipmentId() == integerIntegerEntry.getKey()){
+                            if (equipment.getEquipmentNum() - integerIntegerEntry.getValue() < 0){
+                                return ResponseResult.errorResult(400, "就在刚刚" + equipment.getEquipmentName() + "数量不够了");
+                            }
+                        }
+                    }
+                }
+            }
             Boolean result = transactionTemplate.execute(new TransactionCallback<Boolean>() {
                 @Override
                 public Boolean doInTransaction(TransactionStatus transactionStatus) {
@@ -181,7 +236,6 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
                         for (Map.Entry<Integer, Integer> entry : entries) {
                             meetingEquipmentMapper.insert(new MeetingEquipment(0, meeting.getMeetingId(), entry.getKey(), entry.getValue()));
                         }
-                        //更改equipment表中的设备个数
 
                         //会议通知表操作
 
@@ -203,45 +257,182 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         return ResponseResult.errorResult(400, "此会议室刚刚已被占用");
     }
 
+    /**
+     * 更新会议信息
+     * @param updateMeetingDto
+     * @return
+     */
     @Override
     public ResponseResult updateMeeting(UpdateMeetingDto updateMeetingDto) {
-
+        Timestamp startTime = updateMeetingDto.getMeetingStarttime();
+        Timestamp endTime = updateMeetingDto.getMeetingEndtime();
         //获取此会议
         Meeting meeting = meetingMapper.selectById(updateMeetingDto.getMeetingId());
         //获取可选设备信息
         List<MeetingEquipmentVo> meetingEquipments = meetingMapper.getMeetingEquipmentByMeetingId(meeting.getMeetingId());
         //获取会议人员
         List<MeetingUserVo> meetingUsers = meetingMapper.getMeetingUserByMeetingId(meeting.getMeetingId());
+        //获取所有设备
+        List<Equipment> equipments = equipmentMapper.selectList(null);
 
-        //与修改后对比
-//        for (MeetingEquipmentVo meetingEquipment : meetingEquipments) {
-//            for (Map.Entry<Integer, Integer> integerIntegerEntry : updateMeetingDto.getEquipments().entrySet()) {
-//                integerIntegerEntry.getKey()
-//            }
-//        }
+        //判断当前是否能添加次会议，主要是看创建过程中是否有其他人创建
+        //查看当前会议室和与当前会议室互斥会议室的未开始会议
+        List<Meeting> meetings = meetingMapper.getMettingsByRoomId(updateMeetingDto.getRoomId());
+        //查看时间是否冲突
+        boolean flag = false;
+        for (Meeting meeting1 : meetings) {
+            if (startTime.after(meeting1.getMeetingEndtime()) || endTime.before(meeting1.getMeetingStarttime())){
 
-        //用户操作
-        List<Integer> usersOld = new ArrayList<>();
-        for (MeetingUserVo meetingUser : meetingUsers) {
-            usersOld.add(meetingUser.getUserId());
+            } else {
+                //除去当前会议
+                if(meeting1.getMeetingId() != meeting.getMeetingId()){
+                    flag = true;
+                    break;
+                }
+            }
         }
-        List<Integer> usersNew = updateMeetingDto.getUsers();
-        //找到old中不在new中的元素
-        List<Integer> diff1 = new ArrayList<>(usersOld);
-        diff1.removeAll(usersNew);
-        //删除这些user
 
-        //发送不需要参加的通知
+        if (!flag){
+            //判断可选设备是否可以加入
+            if (updateMeetingDto.getEquipments().size() > 0){
+                //找到所有未开始会议
+                LambdaQueryWrapper<Meeting> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(Meeting::getMeetingState, 0);
+                List<Meeting> meetings2 = meetingMapper.selectList(wrapper);
+                //对比时间
+                for (Meeting meeting2 : meetings2) {
 
-        //找到new中不在old中的元素
-        List<Integer> diff2 = new ArrayList<>(usersNew);
-        diff2.removeAll(usersOld);
-        //新增这些user
+                    if (startTime.after(meeting2.getMeetingEndtime()) || endTime.before(meeting2.getMeetingStarttime())){
+//                if (roomInfoVoMap.get(meeting.getRoomId()).getState() == 0){
+//                    //此会议室可以加入
+//                    roomInfoVoMap.get(meeting.getRoomId()).setState(1);
+//                }
+                    } else {
+                        //找到此会议绑定的可选设备
+                        LambdaQueryWrapper<MeetingEquipment> queryWrapper = new LambdaQueryWrapper<>();
+                        queryWrapper.eq(MeetingEquipment::getMeetingId, meeting2.getMeetingId());
+                        List<MeetingEquipment> meetingEquipments1 = meetingEquipmentMapper.selectList(queryWrapper);
 
-        //发送邀请会议通知
+                        //双重for 减操作  待优化
+                        for (int i = 0; i < equipments.size(); i++) {
+                            for (MeetingEquipment meetingEquipment : meetingEquipments1) {
+                                //有则减
+                                if (meetingEquipment.getEquipmentId() == equipments.get(i).getEquipmentId()){
+                                    equipments.get(i).setEquipmentNum(equipments.get(i).getEquipmentNum() - meetingEquipment.getEquipmentNum());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //设备与修改后对比
+            for (Map.Entry<Integer, Integer> integerIntegerEntry : updateMeetingDto.getEquipments().entrySet()) {
+                boolean flag2 = true;
+                for (MeetingEquipmentVo meetingEquipment : meetingEquipments) {
+                    if (meetingEquipment.getEquipmentId() == integerIntegerEntry.getKey()){
+                        //原先有的设备
+                        flag2 = false;
+                        if (meetingEquipment.getEquipmentNum() < integerIntegerEntry.getValue()){
+                            //设备增加个数，判断是否可以继续加入
+                            for (Equipment equipment : equipments) {
+                                if (equipment.getEquipmentId() == meetingEquipment.getEquipmentId()){
+                                    if (equipment.getEquipmentNum() > (integerIntegerEntry.getValue() - meetingEquipment.getEquipmentNum())){
+                                        //可以加入
+                                    } else {
+                                        return ResponseResult.errorResult(400, equipment.getEquipmentName() + "设备数量不足");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (flag2) {
+                    //新增新设备，判断是否可以继续加入
+                    for (Equipment equipment : equipments) {
+                        if (equipment.getEquipmentId() == integerIntegerEntry.getKey()){
+                            if (equipment.getEquipmentNum() > integerIntegerEntry.getValue()){
+                                //可以加入
+                            } else {
+                                return ResponseResult.errorResult(400, equipment.getEquipmentName() + "设备数量不足");
+                            }
+                        }
+                    }
+                }
+            }
+            Boolean result = transactionTemplate.execute(new TransactionCallback<Boolean>() {
+                @Override
+                public Boolean doInTransaction(TransactionStatus transactionStatus) {
+                    try {
+                        //更新meeting表
+                        Meeting meetingNew = BeanCopyUtils.copyBean(updateMeetingDto, Meeting.class);
+                        meetingMapper.updateById(meetingNew);
+
+                        //更新设备表  删除旧的，添加新的
+                        LambdaQueryWrapper<MeetingEquipment> queryWrapper = new LambdaQueryWrapper<>();
+                        queryWrapper.eq(MeetingEquipment::getMeetingId, meeting.getMeetingId());
+                        meetingEquipmentMapper.delete(queryWrapper);
+
+                        //添加可选设备到meeting_equipment
+                        Map<Integer, Integer> equipments = updateMeetingDto.getEquipments();
+                        Set<Map.Entry<Integer, Integer>> entries = equipments.entrySet();
+                        for (Map.Entry<Integer, Integer> entry : entries) {
+                            meetingEquipmentMapper.insert(new MeetingEquipment(0, meeting.getMeetingId(), entry.getKey(), entry.getValue()));
+                        }
+
+                        //用户操作
+                        List<Integer> usersOld = new ArrayList<>();
+                        for (MeetingUserVo meetingUser : meetingUsers) {
+                            usersOld.add(meetingUser.getUserId());
+                        }
+                        List<Integer> usersNew = updateMeetingDto.getUsers();
+                        //找到old中不在new中的元素
+                        List<Integer> diff1 = new ArrayList<>(usersOld);
+                        diff1.removeAll(usersNew);
+                        //删除这些user
+                        LambdaQueryWrapper<MeetingUser> queryWrapper1 = new LambdaQueryWrapper<>();
+                        for (Integer integer : diff1) {
+                            queryWrapper1.clear();
+                            queryWrapper1.eq(MeetingUser::getMeetingId, meeting.getMeetingId());
+                            queryWrapper1.eq(MeetingUser::getUserId, integer);
+                            meetingUserMapper.delete(queryWrapper1);
+                        }
 
 
-        return ResponseResult.okResult(200, "会议修改成功").ok(updateMeetingDto);
+                        //找到new中不在old中的元素
+                        List<Integer> diff2 = new ArrayList<>(usersNew);
+                        diff2.removeAll(usersOld);
+                        //新增这些user
+                        for (Integer integer : diff2) {
+                            meetingUserMapper.insert(new MeetingUser(0, meeting.getMeetingId(), integer, 0, null, null)) ;
+                        }
+
+
+                        return true;
+                    } catch (Exception e) {
+                        System.out.println("    updateMeeting错误为：" + e);
+                        //回滚
+                        transactionStatus.setRollbackOnly();
+                        return false;
+                    }
+                }
+            });
+            if (result){
+                //判断新旧特殊需求是否改变，改变则进行通知
+
+                //发送不需要参加的通知
+
+                //发送邀请会议通知
+
+                return ResponseResult.okResult(200, "会议修改成功");
+            } else {
+                return ResponseResult.errorResult(400, "会议修改失败");
+            }
+
+        } else {
+            return ResponseResult.errorResult(400, "修改时被占用，请重新修改");
+        }
+
     }
 
     /**
@@ -290,16 +481,16 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
 
     /**
      * 根据时间查找符合条件的会议室
-     * @param addMeetingDto
+     * @param meetingTimeDto
      * @return 返回所有会议室信息，包括是否可选状态和会议室状态
      */
     @Override
-    public ResponseResult findRoom(AddMeetingDto addMeetingDto) {
+    public ResponseResult findRoom(MeetingTimeDto meetingTimeDto) {
         //获取当前用户
         User userNow = SecurityUtils.getUser();
 
-        Timestamp startTime = addMeetingDto.getMeetingStarttime();
-        Timestamp endTime = addMeetingDto.getMeetingEndtime();
+        Timestamp startTime = meetingTimeDto.getMeetingStarttime();
+        Timestamp endTime = meetingTimeDto.getMeetingEndtime();
         //找到所有未开始会议
         LambdaQueryWrapper<Meeting> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Meeting::getMeetingState, 0);
@@ -374,9 +565,53 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         return ResponseResult.okResult().ok(map);
     }
 
+    /**
+     * 通过时间获取现在可用的设备
+     * @param meetingTimeDto
+     * @return
+     */
+    @Override
+    public ResponseResult findEquipment(MeetingTimeDto meetingTimeDto) {
+        Timestamp startTime = meetingTimeDto.getMeetingStarttime();
+        Timestamp endTime = meetingTimeDto.getMeetingEndtime();
 
-    @Autowired
-    private UserMapper userMapper;
+        //找到所有未开始会议
+        LambdaQueryWrapper<Meeting> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Meeting::getMeetingState, 0);
+        List<Meeting> meetings = meetingMapper.selectList(wrapper);
+        //获取所有设备
+        List<Equipment> equipments = equipmentMapper.selectList(null);
+
+        //对比时间
+        for (Meeting meeting : meetings) {
+
+            if (startTime.after(meeting.getMeetingEndtime()) || endTime.before(meeting.getMeetingStarttime())){
+//                if (roomInfoVoMap.get(meeting.getRoomId()).getState() == 0){
+//                    //此会议室可以加入
+//                    roomInfoVoMap.get(meeting.getRoomId()).setState(1);
+//                }
+            } else {
+                //找到此会议绑定的可选设备
+                LambdaQueryWrapper<MeetingEquipment> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(MeetingEquipment::getMeetingId, meeting.getMeetingId());
+                List<MeetingEquipment> meetingEquipments = meetingEquipmentMapper.selectList(queryWrapper);
+                //双重for 减操作  待优化
+                for (int i = 0; i < equipments.size(); i++) {
+                    for (MeetingEquipment meetingEquipment : meetingEquipments) {
+                        //有则减
+                        if (meetingEquipment.getEquipmentId() == equipments.get(i).getEquipmentId()){
+                            equipments.get(i).setEquipmentNum(equipments.get(i).getEquipmentNum() - meetingEquipment.getEquipmentNum());
+                        }
+                    }
+                }
+            }
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("equipments", equipments);
+        map.put("total", equipments.size());
+        return ResponseResult.okResult(200, "设备数量获取").ok(map);
+    }
+
 
     @Override
     public ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer status) {
@@ -496,4 +731,6 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
 
         return ResponseResult.okResult(meetingListVos);
     }
+
+
 }

@@ -1,14 +1,17 @@
 package com.example.crms.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.UserAddDto;
 import com.example.crms.domain.dto.UserChangeDto;
 import com.example.crms.domain.dto.UserDto;
 import com.example.crms.domain.dto.*;
+import com.example.crms.domain.entity.Department;
 import com.example.crms.domain.entity.Schedule;
 import com.example.crms.domain.entity.User;
 import com.example.crms.enums.AppHttpCodeEnum;
 import com.example.crms.exception.SystemException;
+import com.example.crms.mapper.DepartmentMapper;
 import com.example.crms.mapper.RoleMapper;
 import com.example.crms.mapper.UserRoleMapper;
 import com.example.crms.service.ScheduleService;
@@ -43,6 +46,8 @@ public class UserController {
     private MailService mailService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private DepartmentMapper departmentMapper;
 
 
     @PostMapping("/login")
@@ -75,7 +80,11 @@ public class UserController {
                     newUser.setUserName(registerUserDto.getUserName());
                     newUser.setUserEmail(registerUserDto.getUserEmail());
                     newUser.setUserPassword(registerUserDto.getUserPassword());
-                    newUser.setDepartmentId(registerUserDto.getDepartmentId());
+                    //根据部门查找部门id
+                    LambdaQueryWrapper<Department> queryWrapper = new LambdaQueryWrapper<>();
+                    queryWrapper.eq(Department::getDepartmentName, registerUserDto.getDepartmentName());
+                    Department department = departmentMapper.selectOne(queryWrapper);
+                    newUser.setDepartmentId(department.getDepartmentId());
                     boolean result = userService.registerUser(newUser);
                     if (result){
                         return ResponseResult.okResult(200, "注册成功");
@@ -107,10 +116,15 @@ public class UserController {
         String code = generateEmailCaptcha(5);
         try {
             // 发送验证码到用户邮箱
-            mailService.sendMail(email, "邮箱验证", "您的验证码为：" + code);
-            // 将验证码存入 session 中
-            session.setAttribute("code", code);
-            return ResponseResult.okResult(200, "邮件发送成功").ok(code);
+            boolean b = mailService.sendMail(email, "邮箱验证", "您的验证码为：" + code);
+            if (b){
+                // 将验证码存入 session 中
+                session.setAttribute("code", code);
+                return ResponseResult.okResult(200, "邮件发送成功").ok(code);
+            } else {
+                return ResponseResult.okResult(400, "邮件发送失败，请检查邮箱是否正确").ok(code);
+            }
+
         } catch (MessagingException e) {
             e.printStackTrace();
             return ResponseResult.errorResult(400, "邮件发送失败，请重试");

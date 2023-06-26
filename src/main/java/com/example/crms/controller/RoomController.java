@@ -53,9 +53,9 @@ public class RoomController {
 
     @GetMapping("/all")
     @ApiOperation("获取所有会议室信息")
-    public ResponseResult getAll(@RequestParam(defaultValue = "1") int pageNum){
+    public ResponseResult getAll(@RequestParam(defaultValue = "1") int pageNum,@RequestParam(defaultValue = "10") int pageSize){
 
-        return roomService.allRoomInfo(pageNum);
+        return roomService.allRoomInfo(pageNum, pageSize);
     }
 
     @GetMapping("/find")
@@ -79,6 +79,12 @@ public class RoomController {
         } else {
             return ResponseResult.okResult(400, "获取会议室信息失败");
         }
+    }
+
+    @GetMapping("/getFixedRoom")
+    @ApiOperation("获取组成会议室的房间")
+    public ResponseResult getFixedRoom(){
+        return roomService.getFixedRoom();
     }
 
 }

@@ -23,6 +23,7 @@ public class UpdateMeetingDto {
     private Timestamp meetingStarttime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp meetingEndtime;
+    private String meetingEquipment;
     private String meetingDemand;  //特殊需求
     private String meetingProfile;
     private Map<Integer, Integer> equipments;  //可选设备

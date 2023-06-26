@@ -301,11 +301,11 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
      * @return
      */
     @Override
-    public ResponseResult allRoomInfo(int pageNum) {
+    public ResponseResult allRoomInfo(int pageNum, int pageSize) {
 
         List<RoomVo> roomVoList = new ArrayList<>();
         //分页对象，传入当前页码及每页的数量
-        Page<Room> page = new Page(pageNum,10);
+        Page<Room> page = new Page(pageNum,pageSize);
 
         Page<Room> records = roomMapper.selectPage(page, null);
         List<Room> roomRecords = records.getRecords();
@@ -388,6 +388,21 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
 
         return ResponseResult.errorResult(200, "查询会议室").ok(map);
 
+    }
+
+    /**
+     * 获取固定房间号
+     * @return
+     */
+    @Override
+    public ResponseResult getFixedRoom() {
+
+        List<FixedRoom> fixedRoomList = fixedRoomMapper.selectList(null);
+        Map<String, Object> map = new HashMap<>();
+        map.put("rooms", fixedRoomList);
+        map.put("total", fixedRoomList.size());
+
+        return ResponseResult.okResult().ok(map);
     }
 
 

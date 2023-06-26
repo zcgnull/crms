@@ -18,6 +18,6 @@ public interface MeetingMapper extends BaseMapper<Meeting> {
     List<MeetingEquipmentVo> getMeetingEquipmentByMeetingId(int meetingId);
     List<MeetingUserVo> getMeetingUserByMeetingId(int meetingId);
     List<Meeting> getMettingsByRoomId(int roomId);
-    List<Meeting> getAttendMeetingByUserId(int userId);
+    List<Meeting> getAttendMeetingByUserId(int userId, int pageNum, int pageSize);
 
 }
