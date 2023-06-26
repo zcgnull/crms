@@ -87,4 +87,10 @@ public class RoomController {
         return roomService.getFixedRoom();
     }
 
+    @GetMapping("/getRoomIds")
+    @ApiOperation("为前端提供房间下拉框")
+    public ResponseResult getRoomIDs() {
+        return roomService.getRoomIds();
+    }
+
 }

@@ -8,6 +8,7 @@ import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.AddRoomDto;
 import com.example.crms.domain.dto.UpdateRoomDto;
 import com.example.crms.domain.entity.*;
+import com.example.crms.domain.vo.RoomIdsVo;
 import com.example.crms.domain.vo.RoomVo;
 import com.example.crms.mapper.*;
 import com.example.crms.service.RoomService;
@@ -433,6 +434,16 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         return roomVo;
     }
 
-
+    /**
+     * 获取会议室的id和name
+     * @return
+     */
+    public ResponseResult getRoomIds(){
+        List<RoomIdsVo> roomIdsVoList = roomMapper.getRoomIdsVoList();
+        Map<String, Object> map = new HashMap<>();
+        map.put("rooms", roomIdsVoList);
+        map.put("total", roomIdsVoList.size());
+        return ResponseResult.okResult(200, "获取会议室下拉列表").ok(map);
+    }
 
 }

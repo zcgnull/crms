@@ -24,4 +24,6 @@ public interface RoomService extends IService<Room> {
     ResponseResult findRoomByStateOrLocationOrDepartment(Integer roomState, String roomLocation, Integer departmentId);
 
     ResponseResult getFixedRoom();
+
+    ResponseResult getRoomIds();
 }

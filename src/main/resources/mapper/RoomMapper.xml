@@ -12,4 +12,7 @@
           AND
             room_department.room_id = #{roomId}
     </select>
+    <select id="getRoomIdsVoList" resultType="com.example.crms.domain.vo.RoomIdsVo">
+        SELECT room.room_id,room.room_name FROM room
+    </select>
 </mapper>
