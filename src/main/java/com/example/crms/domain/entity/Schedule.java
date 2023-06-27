@@ -1,5 +1,6 @@
 package com.example.crms.domain.entity;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -30,9 +31,11 @@ public class Schedule {
 
     private String scheduleName;
 
-    private Date scheduleStarttime;
+//    private Date scheduleStarttime;
+    private Timestamp scheduleStarttime;
 
-    private Date scheduleEndtime;
+//    private Date scheduleEndtime;
+    private Timestamp scheduleEndtime;
 
     private Integer meetingId;
 

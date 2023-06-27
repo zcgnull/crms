@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -22,10 +23,17 @@ public class MeetingUser {
     private int userReply;
     private String userInfo;
     private Timestamp replyTime;
+//    private Date replyTime;
 
 
     public MeetingUser(int meetingId, int userId){
         this.meetingId = meetingId;
         this.userId = userId;
     }
+
+//    public MeetingUser(int meetingId, int userId, int userReply) {
+//        this.meetingId = meetingId;
+//        this.userId = userId;
+//        this.userReply = userReply;
+//    }
 }

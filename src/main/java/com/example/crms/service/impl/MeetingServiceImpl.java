@@ -20,6 +20,7 @@ import com.example.crms.domain.vo.PageVo;
 import com.example.crms.domain.vo.RoomInfoVo;
 import com.example.crms.mapper.*;
 import com.example.crms.service.MeetingService;
+import com.example.crms.service.MeetingUserService;
 import com.example.crms.utils.BeanCopyUtils;
 import com.example.crms.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,8 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     private EquipmentMapper equipmentMapper;
     @Autowired
     private MyConstants myConstants;
+    @Autowired
+    private MeetingUserService meetingUserService;
 
 
     /**
@@ -145,6 +148,14 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         return ResponseResult.okResult(200, "获取会议信息").ok(map);
     }
 
+//                    int meetingId = meeting.getMeetingId();
+//                    List<MeetingUser> meetingUsers = new ArrayList<>();
+//                    for (Integer user: addMeetingDto.getUsers()
+//                         ) {
+//                        MeetingUser meetingUser = new MeetingUser(meetingId,user,0);
+//                        meetingUsers.add(meetingUser);
+//                    }
+//                    meetingUserService.saveOrUpdateBatch(meetingUsers);
 
 
 
