@@ -18,11 +18,17 @@ public class MeetingUser {
 
     @TableId(type = IdType.AUTO)
     private int id;
+
     private int meetingId;
+
     private int userId;
+
     private int userReply;
+
     private String userInfo;
+
     private Timestamp replyTime;
+
 //    private Date replyTime;
 
 
