@@ -403,7 +403,7 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
                         List<Integer> diff1 = new ArrayList<>(usersOld);
                         diff1.removeAll(usersNew);
                         //发送不需要参加的通知
-                        //删除这些user,并向meeting_update_remind表中插入数据
+                        //删除这些user,并向meeting_delete_remind表中插入数据
                         LambdaQueryWrapper<MeetingUser> queryWrapper1 = new LambdaQueryWrapper<>();
                         for (Integer integer : diff1) {
                             queryWrapper1.clear();
