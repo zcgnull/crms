@@ -64,6 +64,8 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     private MyConstants myConstants;
     @Autowired
     private MeetingUserService meetingUserService;
+    @Autowired
+    private MeetingUpdateRemindMapper meetingUpdateRemindMapper;
 
 
     /**
@@ -400,15 +402,23 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
                         //找到old中不在new中的元素
                         List<Integer> diff1 = new ArrayList<>(usersOld);
                         diff1.removeAll(usersNew);
-                        //删除这些user
+                        //发送不需要参加的通知
+                        //删除这些user,并向meeting_update_remind表中插入数据
                         LambdaQueryWrapper<MeetingUser> queryWrapper1 = new LambdaQueryWrapper<>();
                         for (Integer integer : diff1) {
                             queryWrapper1.clear();
                             queryWrapper1.eq(MeetingUser::getMeetingId, meeting.getMeetingId());
                             queryWrapper1.eq(MeetingUser::getUserId, integer);
                             meetingUserMapper.delete(queryWrapper1);
+                            //向meeting_update_remind表中插入数据
+//                            MeetingUpdateRemind meetingUpdateRemind = new MeetingUpdateRemind(meeting.getMeetingId(), integer);
+//                            meetingUpdateRemindMapper.insert(meetingUpdateRemind);
                         }
+                        //找出会议修改前后均在的用户，发送会议修改的通知
+//                        List  new ArrayList<>(usersOld)
 
+                        //发送不需要参加的通知
+                        //获取该会议Id
 
                         //找到new中不在old中的元素
                         List<Integer> diff2 = new ArrayList<>(usersNew);
@@ -431,9 +441,7 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
             if (result){
                 //判断新旧特殊需求是否改变，改变则进行通知
 
-                //发送不需要参加的通知
-
-                //发送邀请会议通知
+                //给仍参加会议的用户发送会议修改提醒
 
                 return ResponseResult.okResult(200, "会议修改成功");
             } else {
