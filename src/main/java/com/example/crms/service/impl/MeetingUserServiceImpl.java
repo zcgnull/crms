@@ -135,4 +135,51 @@ public class MeetingUserServiceImpl extends ServiceImpl<MeetingUserMapper, Meeti
             return ResponseResult.okResult();
     }
 
+    @Autowired
+    private MeetingUpdateRemindMapper meetingUpdateRemindMapper;
+
+    @Override
+    public ResponseResult pageUpdateList(Integer pageNum, Integer pageSize) {
+        //根据自己Id从meetingUser表中查到对应List集合
+        Integer userId = SecurityUtils.getUserId();
+
+        LambdaQueryWrapper<MeetingUpdateRemind> meetingUpdateRemindLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        meetingUpdateRemindLambdaQueryWrapper.eq(MeetingUpdateRemind::getUserId,userId);
+//        LambdaQueryWrapper<MeetingUpdateRemind> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+//        lambdaQueryWrapper.eq(MeetingUpdateRemind::getUserId, userId);
+
+        Page page = new Page(pageNum, pageSize);
+        Page page1 = meetingUpdateRemindMapper.selectPage(page, meetingUpdateRemindLambdaQueryWrapper);
+
+
+        PageVo pageVo = new PageVo();
+        pageVo.setTotal(page1.getTotal());
+        pageVo.setRows(page1.getRecords());
+        //返回Vo
+        //向您发起邀请的名称为“meetingName”，开始时间为“”，结束时间为“”的会议发生修改，点击查看修改后的会议信息
+        return ResponseResult.okResult(pageVo);
+    }
+
+    @Autowired
+    private MeetingDeleteRemindMapper meetingDeleteRemindMapper;
+    @Override
+    public ResponseResult pageDeleteList(Integer pageNum, Integer pageSize) {
+        //根据自己Id从meetingUser表中查到对应List集合
+        Integer userId = SecurityUtils.getUserId();
+
+        LambdaQueryWrapper<MeetingDeleteRemind> meetingDeleteRemindLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        meetingDeleteRemindLambdaQueryWrapper.eq(MeetingDeleteRemind::getUserId,userId);
+
+        Page page = new Page(pageNum, pageSize);
+        Page page1 = meetingDeleteRemindMapper.selectPage(page, meetingDeleteRemindLambdaQueryWrapper);
+
+
+        PageVo pageVo = new PageVo();
+        pageVo.setTotal(page1.getTotal());
+        pageVo.setRows(page1.getRecords());
+        //返回Vo
+        //向您发起邀请的名称为“meetingName”，开始时间为“”，结束时间为“”的会议已经取消
+        return ResponseResult.okResult(pageVo);
+    }
+
 }

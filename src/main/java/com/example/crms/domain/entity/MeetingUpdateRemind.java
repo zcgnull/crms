@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 /**
  * (MeetingUpdateRemind)表实体类
@@ -24,14 +25,12 @@ public class MeetingUpdateRemind{
 
     @TableId
     private Integer id;
-    
     private Integer meetingId;
-    
     private Integer userId;
+    private String userName;        //会议预定人姓名
+    private String meetingName;   //会议名称
+    private Timestamp meetingStarttime;  //会议开始时间
+    private Timestamp meetingEndtime;    //会议结束时间
 
-    public MeetingUpdateRemind(Integer meetingId, Integer userId) {
-        this.meetingId = meetingId;
-        this.userId = userId;
-    }
 }
 

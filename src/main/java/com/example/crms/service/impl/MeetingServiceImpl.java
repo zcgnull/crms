@@ -66,7 +66,8 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     private MeetingUserService meetingUserService;
     @Autowired
     private MeetingUpdateRemindMapper meetingUpdateRemindMapper;
-
+    @Autowired
+    private ScheduleMapper scheduleMapper;
 
     /**
      * 获取所有会议
@@ -402,7 +403,8 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
                         //找到old中不在new中的元素
                         List<Integer> diff1 = new ArrayList<>(usersOld);
                         diff1.removeAll(usersNew);
-                        //发送不需要参加的通知
+
+                        //对于不再参加的用户，发送会议取消提醒，并且删除日程表中对应的开会状态
                         //删除这些user,并向meeting_delete_remind表中插入数据
                         LambdaQueryWrapper<MeetingUser> queryWrapper1 = new LambdaQueryWrapper<>();
                         for (Integer integer : diff1) {
@@ -410,15 +412,100 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
                             queryWrapper1.eq(MeetingUser::getMeetingId, meeting.getMeetingId());
                             queryWrapper1.eq(MeetingUser::getUserId, integer);
                             meetingUserMapper.delete(queryWrapper1);
-                            //向meeting_update_remind表中插入数据
-//                            MeetingUpdateRemind meetingUpdateRemind = new MeetingUpdateRemind(meeting.getMeetingId(), integer);
-//                            meetingUpdateRemindMapper.insert(meetingUpdateRemind);
-                        }
-                        //找出会议修改前后均在的用户，发送会议修改的通知
-//                        List  new ArrayList<>(usersOld)
+                            //向meeting_delete_remind表中插入数据
+                            MeetingDeleteRemind meetingDeleteRemind = new MeetingDeleteRemind();
+                            //给对象赋值，并插入到meeting_delete_remind表中
+                            meetingDeleteRemind.setMeetingName(meeting.getMeetingName());
+                            meetingDeleteRemind.setMeetingStarttime(meeting.getMeetingStarttime());
+                            meetingDeleteRemind.setMeetingEndtime(meeting.getMeetingEndtime());
+                            meetingDeleteRemind.setUserId(integer);
+                            //根据会议预定人的ID，查询其姓名
+                            LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                            userLambdaQueryWrapper.eq(User::getUserId,meeting.getUserId());
+                            User user1 = userMapper.selectOne(userLambdaQueryWrapper);
 
-                        //发送不需要参加的通知
-                        //获取该会议Id
+                            meetingDeleteRemind.setUserName(user1.getUserName());
+
+                            meetingDeleteRemindMapper.insert(meetingDeleteRemind);
+
+                            //删除日程表中对应的开会状态
+                            LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                            scheduleLambdaQueryWrapper.eq(Schedule::getUserId,integer).eq(Schedule::getMeetingId,meeting.getMeetingId());
+                            scheduleMapper.delete(scheduleLambdaQueryWrapper);
+                        }
+                        //对于不再参加的用户，发送会议取消邮件提醒
+
+                        //找出会议修改前后均在的用户，发送会议修改的提醒,并且修改日程表中对应的开会时间
+                        List<Integer> between = new ArrayList<>(usersOld);
+                        List<Integer> newUsers = new ArrayList<>(usersNew);
+                        between.retainAll(newUsers);
+                        if (between.size() > 0 ){
+                            for (Integer user:between
+                                 ) {
+                                MeetingUpdateRemind meetingUpdateRemind = new MeetingUpdateRemind();
+
+                                //给对象赋值，并插入到meeting_update_remind表中
+                                meetingUpdateRemind.setMeetingId(meeting.getMeetingId());
+                                meetingUpdateRemind.setMeetingName(meeting.getMeetingName());
+                                meetingUpdateRemind.setMeetingStarttime(meeting.getMeetingStarttime());
+                                meetingUpdateRemind.setMeetingEndtime(meeting.getMeetingEndtime());
+                                meetingUpdateRemind.setUserId(user);
+                                //根据会议预定人的ID，查询其姓名
+                                LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                                userLambdaQueryWrapper.eq(User::getUserId,meeting.getUserId());
+                                User user1 = userMapper.selectOne(userLambdaQueryWrapper);
+
+                                meetingUpdateRemind.setUserName(user1.getUserName());
+
+                                meetingUpdateRemindMapper.insert(meetingUpdateRemind);
+
+                                //查看该员工是否已经参加会议
+                                LambdaQueryWrapper<MeetingUser> meetingUserLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                                meetingUserLambdaQueryWrapper.eq(MeetingUser::getUserId,user).eq(MeetingUser::getMeetingId,meeting.getMeetingId()).eq(MeetingUser::getUserReply,1);
+                                MeetingUser meetingUser = meetingUserMapper.selectOne(meetingUserLambdaQueryWrapper);
+
+                                if (meetingUser != null) {
+                                    //如果会议时间发生修改，先将原开会状态删除，再查找该时间段是否存在其他状态，最后新增开会状态
+                                    if (!(meeting.getMeetingStarttime() == updateMeetingDto.getMeetingStarttime() && meeting.getMeetingEndtime() == updateMeetingDto.getMeetingEndtime())) {
+
+                                        //先将原开会状态删除
+                                        LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                                        scheduleLambdaQueryWrapper.eq(Schedule::getUserId,user).eq(Schedule::getMeetingId,meeting.getMeetingId());
+                                        scheduleMapper.delete(scheduleLambdaQueryWrapper);
+
+                                        //查询修改后的时间段内是否有其他状态
+                                        List<Schedule> schedules = scheduleMapper.selectExistStatus(user, updateMeetingDto.getMeetingStarttime(), updateMeetingDto.getMeetingEndtime());
+                                        //如果有其他状态，先将其他状态删除
+                                        if (schedules.size() > 0) {
+                                            for (Schedule schedule1 : schedules
+                                            ) {
+                                                scheduleMapper.deleteById(schedule1.getScheduleId());
+                                            }
+                                        }
+
+//                                        LambdaUpdateWrapper<Schedule> scheduleLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+//                                        scheduleLambdaUpdateWrapper.eq(Schedule::getUserId, user).eq(Schedule::getMeetingId, meeting.getMeetingId());
+//                                        scheduleLambdaUpdateWrapper.set(Schedule::getScheduleStarttime, updateMeetingDto.getMeetingStarttime());
+//                                        scheduleLambdaUpdateWrapper.set(Schedule::getScheduleEndtime, updateMeetingDto.getMeetingEndtime());
+//                                        scheduleMapper.update(null, scheduleLambdaUpdateWrapper);
+
+                                        //插入新的开会状态表
+                                        //创建状态对象，并赋值
+                                        Schedule schedule = new Schedule();
+                                        schedule.setScheduleName("开会");
+                                        schedule.setScheduleStarttime(updateMeetingDto.getMeetingStarttime());
+                                        schedule.setScheduleEndtime(updateMeetingDto.getMeetingEndtime());
+                                        schedule.setMeetingId(meeting.getMeetingId());
+                                        schedule.setScheduleStatus(0);
+                                        schedule.setUserId(user);
+                                        scheduleMapper.insert(schedule);
+
+                                    }
+                                }
+                            }
+                        }
+
+                        //发送会议修改的邮件提醒
 
                         //找到new中不在old中的元素
                         List<Integer> diff2 = new ArrayList<>(usersNew);
@@ -465,11 +552,44 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
             @Override
             public Boolean doInTransaction(TransactionStatus transactionStatus) {
                 try {
+                    Meeting meeting = meetingMapper.selectById(id);
+
+                    //根据会议预定人的ID，查询其姓名，以供后续使用
+                    LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                    userLambdaQueryWrapper.eq(User::getUserId,meeting.getUserId());
+                    User user1 = userMapper.selectOne(userLambdaQueryWrapper);
+
                     //根据id删除meeting
                     meetingMapper.deleteById(id);
                     //取消会议提醒
+                    //对会议所有邀请人员发送会议取消的通知
 
-                    //进行取消提醒
+                    LambdaQueryWrapper<MeetingUser> meetingUserLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                    meetingUserLambdaQueryWrapper.eq(MeetingUser::getMeetingId, id);
+                    List<MeetingUser> meetingUsers = meetingUserMapper.selectList(meetingUserLambdaQueryWrapper);
+                    for (MeetingUser meetingUser:meetingUsers
+                         ) {
+                        MeetingDeleteRemind meetingDeleteRemind = new MeetingDeleteRemind();
+                        //给对象赋值，并插入到meeting_delete_remind表中
+                        meetingDeleteRemind.setMeetingName(meeting.getMeetingName());
+                        meetingDeleteRemind.setMeetingStarttime(meeting.getMeetingStarttime());
+                        meetingDeleteRemind.setMeetingEndtime(meeting.getMeetingEndtime());
+                        meetingDeleteRemind.setUserId(meetingUser.getUserId());
+                        meetingDeleteRemind.setUserName(user1.getUserName());
+
+                        meetingDeleteRemindMapper.insert(meetingDeleteRemind);
+
+                        //删除已参会人员对应时间段的开会状态
+                        //判断该用户是否已经参会
+                        //已参会
+                        if (meetingUser.getUserReply() == 1){
+                            //删除日程表中对应的开会状态
+                            LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                            scheduleLambdaQueryWrapper.eq(Schedule::getUserId,meetingUser.getUserId()).eq(Schedule::getMeetingId,meeting.getMeetingId());
+                            scheduleMapper.delete(scheduleLambdaQueryWrapper);
+                        }
+                    }
+                    //进行会议取消邮件提醒
 
                     //根据id删除meeting_user
                     LambdaQueryWrapper<MeetingUser> queryWrapper = new LambdaQueryWrapper<>();

@@ -12,4 +12,8 @@ public interface MeetingUserService extends IService<MeetingUser> {
     ResponseResult pageInviteList(Integer pageNum, Integer pageSize);
 
     ResponseResult choiceInvite(MeetingChoiceDTO meetingChoiceDTO);
+
+    ResponseResult pageUpdateList(Integer pageNum, Integer pageSize);
+
+    ResponseResult pageDeleteList(Integer pageNum, Integer pageSize);
 }

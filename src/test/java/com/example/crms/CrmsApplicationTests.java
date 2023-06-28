@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.File;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -70,5 +71,16 @@ class CrmsApplicationTests {
         for (MeetingUserVo meetingUserVo : meetingUserByMeetingId) {
             System.out.println(meetingUserVo.toString());
         }
+    }
+    @Test
+    void test4() {
+        ArrayList<Object> objects = new ArrayList<>();
+        objects.add(1);
+        objects.add(2);
+        ArrayList<Object> objects2 = new ArrayList<>();
+        objects2.add(2);
+        objects2.add(3);
+        objects.removeAll(objects2);
+        System.out.printf(objects.toString());
     }
 }

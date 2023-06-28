@@ -37,5 +37,26 @@ public class MeetingUserController {
         return meetingUserService.choiceInvite(meetingChoiceDTO);
     }
 
+    /**
+     *  分页查询会议修改信息
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    @GetMapping("/update")
+    public ResponseResult getUpdateList(Integer pageNum, Integer pageSize){
+        return meetingUserService.pageUpdateList(pageNum,pageSize);
+    }
+
+    /**
+     *  分页查询会议取消信息
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    @GetMapping("/delete")
+    public ResponseResult getDeleteList(Integer pageNum, Integer pageSize){
+        return meetingUserService.pageDeleteList(pageNum,pageSize);
+    }
 
 }

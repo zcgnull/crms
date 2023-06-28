@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("user")
-public class User extends Model<User> {
+public class User{
     //用户id
     @TableId(type = IdType.AUTO)
     private Integer userId;
