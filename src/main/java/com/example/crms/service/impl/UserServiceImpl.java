@@ -565,16 +565,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public ResponseResult statusUser(Schedule schedule) {
 
+
         List userReducibleVos = new ArrayList<>();
 
-        //得到所有用户名称的List集合
+        //得到所有用户
         List<User> users = userMapper.selectList(null);
 
-        ArrayList<String> userNames = new ArrayList<>();
+        ArrayList<Integer> userIds = new ArrayList<>();
 
+        //得到所有用户Id
         for (User user: users
              ) {
-            userNames.add(user.getUserName());
+            userIds.add(user.getUserId());
         }
 
         //将不可约的用户排除掉
@@ -589,20 +591,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
 
             //根据Id获取对应的姓名
-            List<User> users1 = userMapper.selectBatchIds(exUserIds);
+//            List<User> users1 = userMapper.selectBatchIds(exUserIds);
+//
+//            ArrayList<String> exUserNames = new ArrayList<>();
+//            for (User user: users1
+//            ) {
+//                exUserNames.add(user.getUserName());
+//            }
 
-            ArrayList<String> exUserNames = new ArrayList<>();
-            for (User user: users1
-            ) {
-                exUserNames.add(user.getUserName());
-            }
-
-            Collection subtract = CollectionUtils.subtract(userNames, exUserNames);
+            Collection subtract = CollectionUtils.subtract(userIds, exUserIds);
 
             for (Object user:subtract
                  ) {
                 LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-                userLambdaQueryWrapper.eq(User::getUserName, user);
+                userLambdaQueryWrapper.eq(User::getUserId, user);
                 User user1 = userMapper.selectOne(userLambdaQueryWrapper);
                 userReducibleVos.add(user1);
             }
@@ -618,6 +620,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return ResponseResult.okResult(userReducibleVos);
         }
 
+    }
+
+    @Override
+    public ResponseResult UserOfMeeting(Schedule schedule) {
+
+        //获取当前用户id
+        Integer userId = SecurityUtils.getUserId();
+
+        List<Schedule> schedules = scheduleMapper.selectUserStatusMeeting(userId, schedule.getScheduleStarttime(), schedule.getScheduleEndtime());
+
+        if (schedules.size() != 0) {
+            return ResponseResult.errorResult(550,"您在该时间段处于开会或休假状态，不可预约会议");
+        }
+
+        return ResponseResult.okResult(200,"您可以预约会议");
     }
 }
 

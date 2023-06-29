@@ -19,5 +19,7 @@ public interface ScheduleMapper extends BaseMapper<Schedule> {
     List<Schedule> selectExistStatus(Integer userId, Date scheduleStarttime, Date scheduleEndtime);
 
     List<Schedule> selectUserStatus(Date scheduleStarttime, Date scheduleEndtime);
+
+    List<Schedule> selectUserStatusMeeting(Integer userId,Date scheduleStarttime, Date scheduleEndtime);
 }
 

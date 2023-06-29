@@ -19,4 +19,14 @@
 
     </select>
 
+    <select id="selectUserStatusMeeting" resultType="com.example.crms.domain.entity.Schedule">
+        SELECT *
+        FROM schedule
+        WHERE user_id = #{userId}
+        AND schedule_status = 0
+        AND (schedule_starttime BETWEEN #{scheduleStarttime} AND  #{scheduleEndtime}
+        or schedule_endtime BETWEEN #{scheduleStarttime} and #{scheduleEndtime} )
+
+    </select>
+
 </mapper>

@@ -303,4 +303,13 @@ public class UserController {
         return userService.statusUser(schedule);
     }
 
+    /**
+     * 当前用户是否可以预约会议
+     */
+    @GetMapping("/UserOfMeeting")
+    public ResponseResult UserOfMeeting(@RequestBody Schedule schedule) {
+
+        return userService.UserOfMeeting(schedule);
+    }
+
 }
