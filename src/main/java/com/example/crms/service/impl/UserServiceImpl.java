@@ -488,7 +488,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         else {
-            throw new SystemException(AppHttpCodeEnum.Status_EXIST);
+            return ResponseResult.errorResult(AppHttpCodeEnum.Status_EXIST);
+//            throw new SystemException(AppHttpCodeEnum.Status_EXIST);
         }
     }
 
@@ -555,7 +556,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         else {
-            throw new SystemException(AppHttpCodeEnum.Status_EXIST);
+            return ResponseResult.errorResult(AppHttpCodeEnum.Status_EXIST);
+//            throw new SystemException(AppHttpCodeEnum.Status_EXIST);
         }
 
     }
