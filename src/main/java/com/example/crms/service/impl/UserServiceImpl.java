@@ -11,6 +11,7 @@ import com.example.crms.domain.ResponseResult;
 import com.example.crms.domain.dto.UserAddDto;
 import com.example.crms.domain.dto.UserChangeDto;
 import com.example.crms.domain.dto.UserDto;
+import com.example.crms.domain.dto.UserStatusDto;
 import com.example.crms.domain.entity.*;
 import com.example.crms.domain.vo.*;
 import com.example.crms.enums.AppHttpCodeEnum;
@@ -23,6 +24,7 @@ import io.swagger.models.auth.In;
 import jdk.nashorn.internal.ir.CallNode;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -619,6 +621,78 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             userReducibleVos = BeanCopyUtils.copyBeanList(users, UserReducibleVo.class);
             return ResponseResult.okResult(userReducibleVos);
         }
+
+    }
+
+    //根据部门查找对应用户
+    @Override
+    public ResponseResult statusUserAndDepartment(Schedule schedule) {
+
+
+//        List userReducibleVos = new ArrayList<>();
+
+        //得到所有用户
+        List<User> users = userMapper.selectList(null);
+
+        ArrayList<Integer> userIds = new ArrayList<>();
+
+        //得到所有用户Id
+        for (User user: users
+        ) {
+            userIds.add(user.getUserId());
+        }
+
+        //得到所有不可约的用户Id
+        List<Schedule> schedules = scheduleMapper.selectUserStatus(schedule.getScheduleStarttime(), schedule.getScheduleEndtime());
+        ArrayList<Integer> exUserIds = new ArrayList<>();
+        if (schedules.size() != 0) {
+            for (Schedule schedule1 : schedules
+            ) {
+                exUserIds.add(schedule1.getUserId());
+            }
+        }
+
+        //所有可约的用户Id
+        Collection subtract = CollectionUtils.subtract(userIds, exUserIds);
+
+        List<User> allUsers = userMapper.selectBatchIds(subtract);
+
+
+        //得到所有用户，包含其对应的部门名称
+        List<UserDto> userDtos = BeanCopyUtils.copyBeanList(allUsers, UserDto.class);
+        for (UserDto userDto:userDtos
+             ) {
+            Department department = departmentMapper.selectById(userDto.getDepartmentId());
+            userDto.setDepartmentName(department.getDepartmentName());
+
+        }
+
+        //创建部门与用户的List对象
+        List<UserStatusDto> userStatusDtos = new ArrayList<>();
+        
+        List<Department> departments = departmentMapper.selectList(null);
+        //给List对象初始化
+        for (Department department:departments
+             ) {
+            UserStatusDto userStatusDto = new UserStatusDto();
+            userStatusDto.setDepartmentName(department.getDepartmentName());
+            userStatusDtos.add(userStatusDto);
+        }
+        //给List对象中的用户赋值
+        for (UserStatusDto userStatusDto:userStatusDtos
+             ) {
+            List<UserDto> userDtos1 = new ArrayList<>();
+            for (UserDto userDto:userDtos
+                 ) {
+                if (userDto.getDepartmentName().equals(userStatusDto.getDepartmentName())) {
+                    userDtos1.add(userDto);
+                }
+            }
+            userStatusDto.setUserDtoList(userDtos1);
+        }
+
+        return ResponseResult.okResult(userStatusDtos);
+
 
     }
 

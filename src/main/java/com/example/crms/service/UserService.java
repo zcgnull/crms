@@ -56,5 +56,7 @@ public interface UserService extends IService<User> {
     ResponseResult statusUser(Schedule schedule);
 
     ResponseResult UserOfMeeting(Schedule schedule);
+
+    ResponseResult statusUserAndDepartment(Schedule schedule);
 }
 

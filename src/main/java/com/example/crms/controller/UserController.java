@@ -304,6 +304,15 @@ public class UserController {
     }
 
     /**
+     * 各个用户是否可约
+     */
+    @GetMapping("/statusUserAndDepartment")
+    public ResponseResult statusUserAndDepartment(@RequestBody Schedule schedule) {
+
+        return userService.statusUserAndDepartment(schedule);
+    }
+
+    /**
      * 当前用户是否可以预约会议
      */
     @GetMapping("/UserOfMeeting")
