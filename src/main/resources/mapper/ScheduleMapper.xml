@@ -7,7 +7,10 @@
         FROM schedule
         WHERE user_id = #{userId}
         AND (schedule_starttime BETWEEN #{scheduleStarttime} AND  #{scheduleEndtime}
-        or schedule_endtime BETWEEN #{scheduleStarttime} and #{scheduleEndtime} )
+        or schedule_endtime BETWEEN #{scheduleStarttime} and #{scheduleEndtime}
+        or (schedule_starttime &lt; #{scheduleStarttime} AND schedule_endtime &gt; #{scheduleEndtime}
+        )
+        )
     </select>
 
     <select id="selectUserStatus" resultType="com.example.crms.domain.entity.Schedule">
@@ -15,7 +18,10 @@
         FROM schedule
         WHERE schedule_status = 0
         AND (schedule_starttime BETWEEN #{scheduleStarttime} AND  #{scheduleEndtime}
-        or schedule_endtime BETWEEN #{scheduleStarttime} and #{scheduleEndtime} )
+        or schedule_endtime BETWEEN #{scheduleStarttime} and #{scheduleEndtime}
+        or (schedule_starttime &lt; #{scheduleStarttime} AND schedule_endtime &gt; #{scheduleEndtime}
+        )
+        )
 
     </select>
 
@@ -24,8 +30,11 @@
         FROM schedule
         WHERE user_id = #{userId}
         AND schedule_status = 0
-        AND (schedule_starttime BETWEEN #{scheduleStarttime} AND  #{scheduleEndtime}
-        or schedule_endtime BETWEEN #{scheduleStarttime} and #{scheduleEndtime} )
+        AND (schedule_starttime BETWEEN #{scheduleStarttime} AND #{scheduleEndtime}
+        or schedule_endtime BETWEEN #{scheduleStarttime} and #{scheduleEndtime}
+        or (schedule_starttime &lt; #{scheduleStarttime} AND schedule_endtime &gt; #{scheduleEndtime}
+        )
+        )
 
     </select>
 

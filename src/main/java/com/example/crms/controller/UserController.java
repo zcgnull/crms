@@ -297,7 +297,7 @@ public class UserController {
     /**
      * 各个用户是否可约
      */
-    @GetMapping("/statusUser")
+    @PostMapping("/statusUser")
     public ResponseResult statusUser(@RequestBody Schedule schedule) {
 
         return userService.statusUser(schedule);
@@ -306,7 +306,7 @@ public class UserController {
     /**
      * 各个用户是否可约
      */
-    @GetMapping("/statusUserAndDepartment")
+    @PostMapping("/statusUserAndDepartment")
     public ResponseResult statusUserAndDepartment(@RequestBody Schedule schedule) {
 
         return userService.statusUserAndDepartment(schedule);
@@ -315,7 +315,7 @@ public class UserController {
     /**
      * 当前用户是否可以预约会议
      */
-    @GetMapping("/UserOfMeeting")
+    @PostMapping("/UserOfMeeting")
     public ResponseResult UserOfMeeting(@RequestBody Schedule schedule) {
 
         return userService.UserOfMeeting(schedule);
