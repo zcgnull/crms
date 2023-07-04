@@ -32,7 +32,6 @@ public class Schedule {
     private String scheduleName;
 
 //    private Date scheduleStarttime;
-
     private Timestamp scheduleStarttime;
 
 //    private Date scheduleEndtime;
