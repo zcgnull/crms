@@ -12,18 +12,14 @@ import com.example.crms.domain.dto.AddMeetingDto;
 import com.example.crms.domain.dto.MeetingTimeDto;
 import com.example.crms.domain.dto.UpdateMeetingDto;
 import com.example.crms.domain.entity.*;
-import com.example.crms.domain.vo.MeetingEquipmentVo;
-import com.example.crms.domain.vo.MeetingUserVo;
-import com.example.crms.domain.vo.MeetingVo;
-import com.example.crms.domain.vo.MeetingListVo;
-import com.example.crms.domain.vo.PageVo;
-import com.example.crms.domain.vo.RoomInfoVo;
+import com.example.crms.domain.vo.*;
 import com.example.crms.mapper.*;
 import com.example.crms.service.MeetingService;
 import com.example.crms.service.MeetingUserService;
 import com.example.crms.utils.BeanCopyUtils;
 import com.example.crms.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -822,56 +818,60 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
     }
 
     @Override
-    public ResponseResult pageRoomMettingList(String someday) {
+    public ResponseResult pageRoomMettingList(Integer roomId) {
 
-        String somedayPlusOne = "";
-        try {
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date date = dateFormat.parse(someday);
-            Calendar calendar = new GregorianCalendar();
-            calendar.setTime(date);
-            calendar.add(Calendar.DATE, 1);
-            date = calendar.getTime();
-            somedayPlusOne = dateFormat.format(date);
-            System.out.println("加一天后的日期：" + somedayPlusOne);
-        }
-        catch (Exception exception) {
-            exception.printStackTrace();
-        }
+//        String somedayPlusOne = "";
+//        try {
+//            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+//            Date date = dateFormat.parse(someday);
+//            Calendar calendar = new GregorianCalendar();
+//            calendar.setTime(date);
+//            calendar.add(Calendar.DATE, 1);
+//            date = calendar.getTime();
+//            somedayPlusOne = dateFormat.format(date);
+//            System.out.println("加一天后的日期：" + somedayPlusOne);
+//        }
+//        catch (Exception exception) {
+//            exception.printStackTrace();
+//        }
 
         LambdaQueryWrapper<Meeting> queryWrapper = new LambdaQueryWrapper();
-
+        queryWrapper.eq(Meeting::getRoomId, roomId);
         //根据会议室Id升序排列
-        queryWrapper.orderByAsc(Meeting::getRoomId);
+//        queryWrapper.orderByAsc(Meeting::getRoomId);
         //其次根据会议开始时间升序排列
         queryWrapper.orderByAsc(Meeting::getMeetingStarttime);
+        List<Meeting> meetings1 = meetingMapper.selectList(queryWrapper);
+        List<AllMeetingVo> allMeetingVos = BeanCopyUtils.copyBeanList(meetings1, AllMeetingVo.class);
+
+
 
         //根据时间判断会议信息是否是历史信息
-        queryWrapper.ge(Meeting::getMeetingStarttime, someday);
-        queryWrapper.lt(Meeting::getMeetingEndtime, somedayPlusOne);
+//        queryWrapper.ge(Meeting::getMeetingStarttime, someday);
+//        queryWrapper.lt(Meeting::getMeetingEndtime, somedayPlusOne);
 //            queryWrapper.lt(Meeting::getMeetingEndtime, someday + )
 
 
-        List<Meeting> meetings = meetingMapper.selectList(queryWrapper);
+//        List<Meeting> meetings = meetingMapper.selectList(queryWrapper);
+//
+//        List<MeetingListVo> meetingListVos = BeanCopyUtils.copyBeanList(meetings, MeetingListVo.class);
+//
+//
+//        for (MeetingListVo meeting: meetingListVos
+//        ) {
+//
+//            //将RoomId转换为RoomName
+//            Room room = roomMapper.selectById(meeting.getRoomId());
+//            meeting.setRoomName(room.getRoomName());
+//
+//            //将UserId转换为userName
+//            User user = userMapper.selectById(meeting.getUserId());
+//            meeting.setUserName(user.getUserName());
+//
+//        }
 
-        List<MeetingListVo> meetingListVos = BeanCopyUtils.copyBeanList(meetings, MeetingListVo.class);
 
-
-        for (MeetingListVo meeting: meetingListVos
-        ) {
-
-            //将RoomId转换为RoomName
-            Room room = roomMapper.selectById(meeting.getRoomId());
-            meeting.setRoomName(room.getRoomName());
-
-            //将UserId转换为userName
-            User user = userMapper.selectById(meeting.getUserId());
-            meeting.setUserName(user.getUserName());
-
-        }
-
-
-        return ResponseResult.okResult(meetingListVos);
+        return ResponseResult.okResult(allMeetingVos);
     }
 
 

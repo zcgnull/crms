@@ -23,6 +23,6 @@ public interface MeetingService extends IService<Meeting> {
 
     ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer meetingState);
 
-    ResponseResult pageRoomMettingList(String someday);
+    ResponseResult pageRoomMettingList(Integer roomId);
     ResponseResult findEquipment(MeetingTimeDto meetingTimeDto);
 }

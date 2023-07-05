@@ -532,6 +532,88 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return ResponseResult.okResult(pageVo);
     }
 
+
+    @Override
+    public ResponseResult getAllStatus(Integer pageNum, Integer pageSize, String userName, String departmentName, String status) {
+        LambdaQueryWrapper<Schedule> scheduleLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+
+        //根据前端传来的部门名称，得到部门ID
+        LambdaQueryWrapper<Department> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(StringUtils.hasText(departmentName),Department::getDepartmentName,departmentName);
+        Department department = null;
+
+
+        if (StringUtils.hasText(departmentName)){
+            department = departmentMapper.selectOne(queryWrapper);
+            userLambdaQueryWrapper.eq(User::getDepartmentId,department.getDepartmentId());
+        }
+
+        //先根据名字查出对应IDs
+        userLambdaQueryWrapper.like(StringUtils.hasText(userName), User::getUserName,userName);
+
+
+
+
+        List<User> users = userMapper.selectList(userLambdaQueryWrapper);
+        ArrayList<Integer> users1 = new ArrayList<>();
+
+        for (User user:users
+             ) {
+            users1.add(user.getUserId());
+        }
+
+        Integer scheduleStatus = -1;
+
+        if (StringUtils.hasText(status)) {
+            if (status.equals("可约") ) {
+                scheduleStatus = 1;
+            }
+            else scheduleStatus = 0;
+        }
+        scheduleLambdaQueryWrapper.in(users1.size() >0,Schedule::getUserId,users1).eq(StringUtils.hasText(status),Schedule::getScheduleStatus,scheduleStatus);
+
+        Page page = new Page(pageNum, pageSize);
+
+
+
+        scheduleLambdaQueryWrapper.orderByAsc(Schedule::getScheduleStatus);
+//        LocalDateTime now = LocalDateTime.now();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        String format = df.format(new Date());
+
+        scheduleLambdaQueryWrapper.ge(Schedule::getScheduleStarttime, format);
+
+        Page page1 = scheduleMapper.selectPage(page, scheduleLambdaQueryWrapper);
+
+
+        PageVo pageVo = new PageVo();
+        pageVo.setTotal(page1.getTotal());
+
+        List records = page1.getRecords();
+        List<ScheduleVo> scheduleVos = BeanCopyUtils.copyBeanList(records, ScheduleVo.class);
+        //将角色名和部门名以及状态名封装到Vo中
+        for (ScheduleVo scheduleVo:scheduleVos
+             ) {
+            User user = userMapper.selectById(scheduleVo.getUserId());
+            scheduleVo.setUserName(user.getUserName());
+            Department department1 = departmentMapper.selectById(user.getDepartmentId());
+            scheduleVo.setDepartmentName(department1.getDepartmentName());
+            if (scheduleVo.getScheduleStatus() == 1){
+                scheduleVo.setStatus("可约");
+            }
+            else scheduleVo.setStatus("不可约");
+        }
+
+        scheduleVos.sort(Comparator.comparing(ScheduleVo::getDepartmentName));
+
+        pageVo.setRows(scheduleVos);
+
+//        List<Schedule> schedules = page.getRecords();
+
+        return ResponseResult.okResult(pageVo);
+    }
+
     @Override
     public ResponseResult statusEdit(Schedule schedule) {
 
@@ -695,6 +777,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     }
+
+
 
     @Override
     public ResponseResult UserOfMeeting(Schedule schedule) {

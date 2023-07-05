@@ -264,6 +264,16 @@ public class UserController {
     }
 
     /**
+     * 查看所有用户状态
+     */
+    @GetMapping("/getAllStatus")
+    public ResponseResult getStatus(Integer pageNum, Integer pageSize, String userName, String departmentName, String status) {
+
+        return userService.getAllStatus(pageNum, pageSize,userName,departmentName,status);
+    }
+
+
+    /**
      * 新增用户状态
      */
     @PostMapping("/addStatus")

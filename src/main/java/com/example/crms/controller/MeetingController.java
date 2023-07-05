@@ -75,13 +75,13 @@ public class MeetingController {
 
 
     /**
-     *  根据日期查询会议室会议信息
-     * @param someday
+     *  根据会议id查询会议室会议信息
+     * @param roomId
      * @return
      */
     @GetMapping("/Roomlist")
-    public ResponseResult getRoomMeetingList(String someday){
-        return meetingService.pageRoomMettingList(someday);
+    public ResponseResult getRoomMeetingList(Integer roomId){
+        return meetingService.pageRoomMettingList(roomId);
     }
 
     @GetMapping("/all")

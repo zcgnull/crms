@@ -58,5 +58,7 @@ public interface UserService extends IService<User> {
     ResponseResult UserOfMeeting(Schedule schedule);
 
     ResponseResult statusUserAndDepartment(Schedule schedule);
+
+    ResponseResult getAllStatus(Integer pageNum, Integer pageSize, String userName, String departmentName, String status);
 }
 
