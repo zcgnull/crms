@@ -518,7 +518,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
         String format = df.format(new Date());
 
-        scheduleLambdaQueryWrapper.ge(Schedule::getScheduleStarttime, format);
+        scheduleLambdaQueryWrapper.ge(Schedule::getScheduleEndtime, format);
+
+
 
         Page page1 = scheduleMapper.selectPage(page, scheduleLambdaQueryWrapper);
 
@@ -582,7 +584,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
         String format = df.format(new Date());
 
-        scheduleLambdaQueryWrapper.ge(Schedule::getScheduleStarttime, format);
+        scheduleLambdaQueryWrapper.ge(Schedule::getScheduleEndtime, format);
 
         Page page1 = scheduleMapper.selectPage(page, scheduleLambdaQueryWrapper);
 

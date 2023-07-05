@@ -15,4 +15,5 @@ public class AllMeetingVo {
     private Timestamp meetingStarttime;
     private Timestamp meetingEndtime;
     private int meetingState;  //会议状态， 0 未开始   1 已经结束
+    private int meetingId;  //会议id
 }
