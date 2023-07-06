@@ -22,4 +22,5 @@ public class MeetingDeleteRemind {
     private String meetingName;   //会议名称
     private Timestamp meetingStarttime;  //会议开始时间
     private Timestamp meetingEndtime;    //会议结束时间
+
 }

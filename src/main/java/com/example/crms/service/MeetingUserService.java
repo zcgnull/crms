@@ -9,7 +9,7 @@ import java.text.ParseException;
 
 public interface MeetingUserService extends IService<MeetingUser> {
 
-    ResponseResult pageInviteList(Integer pageNum, Integer pageSize);
+    ResponseResult pageInviteList(Integer pageNum, Integer pageSize,String userName,String meetingName);
 
     ResponseResult choiceInvite(MeetingChoiceDTO meetingChoiceDTO);
 

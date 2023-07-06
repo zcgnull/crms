@@ -20,8 +20,8 @@ public class MeetingUserController {
      * @return
      */
     @GetMapping("/invite")
-    public ResponseResult getInviteList(Integer pageNum, Integer pageSize){
-        return meetingUserService.pageInviteList(pageNum,pageSize);
+    public ResponseResult getInviteList(Integer pageNum, Integer pageSize, String userName,String meetingName){
+        return meetingUserService.pageInviteList(pageNum,pageSize,userName,meetingName);
     }
 
     /**

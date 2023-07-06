@@ -14,15 +14,18 @@ import com.example.crms.service.MeetingUserService;
 import com.example.crms.service.UserService;
 import com.example.crms.utils.BeanCopyUtils;
 import com.example.crms.utils.SecurityUtils;
+import io.swagger.models.auth.In;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -39,13 +42,44 @@ public class MeetingUserServiceImpl extends ServiceImpl<MeetingUserMapper, Meeti
     private UserMapper userMapper;
 
     @Override
-    public ResponseResult pageInviteList(Integer pageNum, Integer pageSize) {
+    public ResponseResult pageInviteList(Integer pageNum, Integer pageSize, String userName,String meetingName) {
 
         //根据自己Id从meetingUser表中查到对应List集合
         Integer userId = SecurityUtils.getUserId();
 
+        //根据条件限制会议
+
+        LambdaQueryWrapper<User> userLambdaQueryWrapper1 = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper1.like(StringUtils.hasText(userName),User::getUserName,userName);
+        List<User> users = userMapper.selectList(userLambdaQueryWrapper1);
+
+        ArrayList<Integer> userIds = new ArrayList<>();
+        for (User user:users
+             ) {
+            userIds.add(user.getUserId());
+        }
+
+        if (userIds.size() == 0) {
+            return ResponseResult.okResult(200,"无数据");
+        }
+        LambdaQueryWrapper<Meeting> meetingLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        meetingLambdaQueryWrapper.like(StringUtils.hasText(meetingName), Meeting::getMeetingName,meetingName);
+        meetingLambdaQueryWrapper.in(userIds.size() > 0,Meeting::getUserId,userIds);
+        List<Meeting> meetings = meetingMapper.selectList(meetingLambdaQueryWrapper);
+        ArrayList<Integer> meetingIds = new ArrayList<>();
+        for (Meeting meeting:meetings
+        ) {
+            meetingIds.add(meeting.getMeetingId());
+        }
+
+        if (meetingIds.size() == 0) {
+            return ResponseResult.okResult(200,"无数据");
+        }
         LambdaQueryWrapper<MeetingUser> meetingUserLambdaQueryWrapper = new LambdaQueryWrapper<>();
         meetingUserLambdaQueryWrapper.eq(MeetingUser::getUserId, userId);
+        meetingUserLambdaQueryWrapper.in(meetingIds.size()>0,MeetingUser::getMeetingId,meetingIds);
+
+
         Page page = new Page(pageNum, pageSize);
         Page page1 = page(page, meetingUserLambdaQueryWrapper);
         List<MeetingUser> meetingUsers = page1.getRecords();
@@ -143,13 +177,46 @@ public class MeetingUserServiceImpl extends ServiceImpl<MeetingUserMapper, Meeti
         //根据自己Id从meetingUser表中查到对应List集合
         Integer userId = SecurityUtils.getUserId();
 
+
+        //根据条件限制会议
+
+//        LambdaQueryWrapper<User> userLambdaQueryWrapper1 = new LambdaQueryWrapper<>();
+//        userLambdaQueryWrapper1.like(StringUtils.hasText(userName),User::getUserName,userName);
+//        List<User> users = userMapper.selectList(userLambdaQueryWrapper1);
+//
+//        ArrayList<Integer> userIds = new ArrayList<>();
+//        for (User user:users
+//        ) {
+//            userIds.add(user.getUserId());
+//        }
+//
+//        if (userIds.size() == 0) {
+//            return ResponseResult.okResult(200,"无数据");
+//        }
+//        LambdaQueryWrapper<Meeting> meetingLambdaQueryWrapper = new LambdaQueryWrapper<>();
+//        meetingLambdaQueryWrapper.like(StringUtils.hasText(meetingName), Meeting::getMeetingName,meetingName);
+//        meetingLambdaQueryWrapper.in(userIds.size() > 0,Meeting::getUserId,userIds);
+//        List<Meeting> meetings = meetingMapper.selectList(meetingLambdaQueryWrapper);
+//        ArrayList<Integer> meetingIds = new ArrayList<>();
+//        for (Meeting meeting:meetings
+//        ) {
+//            meetingIds.add(meeting.getMeetingId());
+//        }
+//
+//        if (meetingIds.size() == 0) {
+//            return ResponseResult.okResult(200,"无数据");
+//        }
+
+
         LambdaQueryWrapper<MeetingUpdateRemind> meetingUpdateRemindLambdaQueryWrapper = new LambdaQueryWrapper<>();
         meetingUpdateRemindLambdaQueryWrapper.eq(MeetingUpdateRemind::getUserId,userId);
+//        meetingUpdateRemindLambdaQueryWrapper.in(meetingIds.size()>0,MeetingUpdateRemind::getMeetingId,meetingIds);
 //        LambdaQueryWrapper<MeetingUpdateRemind> lambdaQueryWrapper = new LambdaQueryWrapper<>();
 //        lambdaQueryWrapper.eq(MeetingUpdateRemind::getUserId, userId);
 
         Page page = new Page(pageNum, pageSize);
         Page page1 = meetingUpdateRemindMapper.selectPage(page, meetingUpdateRemindLambdaQueryWrapper);
+
 
 
         PageVo pageVo = new PageVo();
@@ -166,9 +233,54 @@ public class MeetingUserServiceImpl extends ServiceImpl<MeetingUserMapper, Meeti
     public ResponseResult pageDeleteList(Integer pageNum, Integer pageSize) {
         //根据自己Id从meetingUser表中查到对应List集合
         Integer userId = SecurityUtils.getUserId();
-
+//        LambdaQueryWrapper<Meeting> meetingLambdaQueryWrapper = new LambdaQueryWrapper<>();
+//        LambdaQueryWrapper<User> userLambdaQueryWrapper1 = new LambdaQueryWrapper<>();
         LambdaQueryWrapper<MeetingDeleteRemind> meetingDeleteRemindLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        //根据条件限制会议
+        //如果传入userName，再进行数据库的查询
+//        if (StringUtils.hasText(userName)) {
+//
+//            userLambdaQueryWrapper1.like(User::getUserName,userName);
+//            List<User> users = userMapper.selectList(userLambdaQueryWrapper1);
+//
+//            ArrayList<Integer> userIds = new ArrayList<>();
+//            for (User user:users
+//            ) {
+//                userIds.add(user.getUserId());
+//            }
+//
+//            if (userIds.size() == 0) {
+//                return ResponseResult.okResult(200,"无数据");
+//            }
+//
+//            meetingLambdaQueryWrapper.in(userIds.size() > 0,Meeting::getUserId,userIds);
+//        }
+
+        //如果传入meetingName，再进行数据库条件的判断
+//        if (StringUtils.hasText(meetingName)) {
+//            meetingLambdaQueryWrapper.like(Meeting::getMeetingName,meetingName);
+//        }
+//
+//
+//        //至少传入一个数据时，才需要查询数据库
+//        if (StringUtils.hasText(meetingName) || StringUtils.hasText(userName)) {
+//            List<Meeting> meetings = meetingMapper.selectList(meetingLambdaQueryWrapper);
+//            ArrayList<Integer> meetingIds = new ArrayList<>();
+//            for (Meeting meeting:meetings
+//            ) {
+//                meetingIds.add(meeting.getMeetingId());
+//            }
+//
+//            if (meetingIds.size() == 0) {
+//                return ResponseResult.okResult(200,"无数据");
+//            }
+//
+//            meetingDeleteRemindLambdaQueryWrapper.in(meetingIds.size()>0,MeetingDeleteRemind::getMeetingId,meetingIds);
+//        }
+
+
         meetingDeleteRemindLambdaQueryWrapper.eq(MeetingDeleteRemind::getUserId,userId);
+
 
         Page page = new Page(pageNum, pageSize);
         Page page1 = meetingDeleteRemindMapper.selectPage(page, meetingDeleteRemindLambdaQueryWrapper);
