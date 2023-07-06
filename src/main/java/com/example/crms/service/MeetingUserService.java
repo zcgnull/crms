@@ -13,7 +13,7 @@ public interface MeetingUserService extends IService<MeetingUser> {
 
     ResponseResult choiceInvite(MeetingChoiceDTO meetingChoiceDTO);
 
-    ResponseResult pageUpdateList(Integer pageNum, Integer pageSize);
+    ResponseResult pageUpdateList(Integer pageNum, Integer pageSize,String userName,String meetingName);
 
-    ResponseResult pageDeleteList(Integer pageNum, Integer pageSize);
+    ResponseResult pageDeleteList(Integer pageNum, Integer pageSize,String userName,String meetingName);
 }

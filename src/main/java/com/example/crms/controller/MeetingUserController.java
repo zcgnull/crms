@@ -41,8 +41,8 @@ public class MeetingUserController {
      * @return
      */
     @GetMapping("/update")
-    public ResponseResult getUpdateList(Integer pageNum, Integer pageSize){
-        return meetingUserService.pageUpdateList(pageNum,pageSize);
+    public ResponseResult getUpdateList(Integer pageNum, Integer pageSize, String userName,String meetingName){
+        return meetingUserService.pageUpdateList(pageNum,pageSize,userName,meetingName);
     }
 
     /**
@@ -52,8 +52,8 @@ public class MeetingUserController {
      * @return
      */
     @GetMapping("/delete")
-    public ResponseResult getDeleteList(Integer pageNum, Integer pageSize){
-        return meetingUserService.pageDeleteList(pageNum,pageSize);
+    public ResponseResult getDeleteList(Integer pageNum, Integer pageSize, String userName,String meetingName){
+        return meetingUserService.pageDeleteList(pageNum,pageSize,userName,meetingName);
     }
 
 }
