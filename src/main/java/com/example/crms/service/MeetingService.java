@@ -25,4 +25,6 @@ public interface MeetingService extends IService<Meeting> {
 
     ResponseResult pageRoomMettingList(Integer roomId);
     ResponseResult findEquipment(MeetingTimeDto meetingTimeDto);
+
+    ResponseResult getMyMeetingsUser(Integer pageNum, Integer pageSize, Integer meetingId,Integer userReply);
 }

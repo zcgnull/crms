@@ -747,6 +747,36 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         return ResponseResult.okResult(200, "设备数量获取").ok(map);
     }
 
+    @Override
+    public ResponseResult getMyMeetingsUser(Integer pageNum, Integer pageSize, Integer meetingId,Integer userReply) {
+
+        LambdaQueryWrapper<MeetingUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MeetingUser::getMeetingId,meetingId);
+        queryWrapper.eq( userReply !=null, MeetingUser::getUserReply,userReply);
+        queryWrapper.orderByDesc(MeetingUser::getUserReply);
+
+        Page page = new Page(pageNum, pageSize);
+        Page page1 = meetingUserMapper.selectPage(page, queryWrapper);
+
+        List<MeetingUser> records = page1.getRecords();
+
+        List<MeetingUserVo2> list = BeanCopyUtils.copyBeanList(records, MeetingUserVo2.class);
+
+        for (MeetingUserVo2 meetingUser:list
+             ) {
+            User user = userMapper.selectById(meetingUser.getUserId());
+            meetingUser.setUserName(user.getUserName());
+            Department department = departmentMapper.selectById(user.getDepartmentId());
+            meetingUser.setDepartmentName(department.getDepartmentName());
+
+        }
+        PageVo pageVo = new PageVo();
+        pageVo.setTotal(page1.getTotal());
+        pageVo.setRows(list);
+
+        return ResponseResult.okResult(pageVo);
+    }
+
 
     @Override
     public ResponseResult pageMettingList(Integer pageNum, Integer pageSize, String roomName, Integer status) {
@@ -770,9 +800,9 @@ public class MeetingServiceImpl extends ServiceImpl<MeetingMapper, Meeting> impl
         queryWrapper.eq(Meeting::getMeetingState, status);
 
         //根据会议室Id升序排列
-        queryWrapper.orderByAsc(Meeting::getRoomId);
-        //其次根据会议开始时间升序排列
-        queryWrapper.orderByAsc(Meeting::getMeetingStarttime);
+//        queryWrapper.orderByAsc(Meeting::getRoomId);
+        //其次根据会议开始时间降序排列
+        queryWrapper.orderByDesc(Meeting::getMeetingStarttime);
 
         //根据时间判断会议信息是否是历史信息
 //        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式

@@ -60,6 +60,7 @@ public class MeetingController {
     public ResponseResult getMeeting(@RequestParam int meetingId){
         return meetingService.getMeeting(meetingId);
     }
+
     /**
      *  分页查询会议室会议信息
      * @param pageNum
@@ -95,6 +96,14 @@ public class MeetingController {
     public ResponseResult getMyMeetings(@RequestParam(defaultValue = "1") Integer pageNum,@RequestParam(defaultValue = "10")  Integer pageSize){
         return meetingService.getMyMeetings(pageNum, pageSize);
     }
+
+    @GetMapping("/myMeetingsUser")
+    @ApiOperation("获取我的预定的会议参会人信息")
+    public ResponseResult getMyMeetingsUser(Integer pageNum,Integer pageSize,Integer meetingId,Integer userReply){
+        return meetingService.getMyMeetingsUser(pageNum, pageSize,meetingId,userReply);
+    }
+
+
 
     @GetMapping("/myAttend")
     @ApiOperation("获取我的需要参加的会议信息")

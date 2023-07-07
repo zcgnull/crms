@@ -18,6 +18,7 @@ import com.example.crms.service.ScheduleService;
 import com.example.crms.service.UserRoleService;
 import com.example.crms.service.MailService;
 import com.example.crms.service.UserService;
+import com.example.crms.utils.SecurityUtils;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -225,9 +226,9 @@ public class UserController {
      */
     @DeleteMapping("/userIds")
     public ResponseResult remove(@RequestParam List<Integer> userIds) {
-//        if(userIds.contains(SecurityUtils.getUserId())){
-//            return ResponseResult.errorResult(500,"不能删除当前你正在使用的用户");
-//        }
+        if(userIds.contains(SecurityUtils.getUserId())){
+            return ResponseResult.errorResult(500,"不能删除当前你正在使用的用户");
+        }
         System.out.println(userIds.toString());
         userService.removeByIds(userIds);
         userRoleService.removeUserRole(userIds);

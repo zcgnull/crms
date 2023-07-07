@@ -352,6 +352,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public ResponseResult addUser(UserAddDto userAddDto) {
 //        //密码加密处理
 //        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        String encodePassword = passwordEncoder.encode(userAddDto.getUserPassword());
+
+
         //根据部门名称查询部门Id,并将其封装到userAddDto中
         LambdaQueryWrapper<Department> departmentLambdaQueryWrapper = new LambdaQueryWrapper<>();
         departmentLambdaQueryWrapper.eq(Department::getDepartmentName,userAddDto.getDepartmentName());
@@ -360,6 +364,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         //保存到user表中
         User user = BeanCopyUtils.copyBean(userAddDto, User.class);
+        user.setUserPassword(encodePassword);
         save(user);
 
         //根据user的邮箱，查询其Id
@@ -411,6 +416,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         User user = BeanCopyUtils.copyBean(userChangeDto, User.class);
 
+        String encodePassword = passwordEncoder.encode(userChangeDto.getUserPassword());
 
         //根据前端传来的部门名称，得到部门ID
         LambdaQueryWrapper<Department> queryWrapper = new LambdaQueryWrapper<>();
@@ -418,7 +424,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Department department = departmentMapper.selectOne(queryWrapper);
 
         user.setDepartmentId(department.getDepartmentId());
-
+        user.setUserPassword(encodePassword);
         updateById(user);
 
         //根据userAddDto中的角色名称，得到角色Id
