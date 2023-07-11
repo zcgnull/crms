@@ -306,6 +306,15 @@ public class UserController {
     }
 
     /**
+     * 重置密码
+     */
+    @PutMapping("/resetPassword")
+    public ResponseResult resetPassword(Integer userId) {
+
+        return userService.resetPassword(userId);
+    }
+
+    /**
      * 各个用户是否可约
      */
     @PostMapping("/statusUser")

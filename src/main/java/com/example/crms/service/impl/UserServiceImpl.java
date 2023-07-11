@@ -416,7 +416,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         User user = BeanCopyUtils.copyBean(userChangeDto, User.class);
 
-        String encodePassword = passwordEncoder.encode(userChangeDto.getUserPassword());
+//        String encodePassword = passwordEncoder.encode(userChangeDto.getUserPassword());
 
         //根据前端传来的部门名称，得到部门ID
         LambdaQueryWrapper<Department> queryWrapper = new LambdaQueryWrapper<>();
@@ -424,7 +424,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Department department = departmentMapper.selectOne(queryWrapper);
 
         user.setDepartmentId(department.getDepartmentId());
-        user.setUserPassword(encodePassword);
+//        user.setUserPassword(encodePassword);
         updateById(user);
 
         //根据userAddDto中的角色名称，得到角色Id
@@ -620,6 +620,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //        List<Schedule> schedules = page.getRecords();
 
         return ResponseResult.okResult(pageVo);
+    }
+
+    @Override
+    public ResponseResult resetPassword(Integer userId) {
+
+        String newPassword = "123456";
+        User user = getById(userId);
+
+        String encodePassword = passwordEncoder.encode(newPassword);
+
+        user.setUserPassword(encodePassword);
+
+        updateById(user);
+        return ResponseResult.okResult();
     }
 
     @Override

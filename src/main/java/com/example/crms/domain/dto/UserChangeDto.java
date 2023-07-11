@@ -15,7 +15,7 @@ public class UserChangeDto {
 
     private String userEmail;
 
-    private String userPassword;
+//    private String userPassword;
 
     private String departmentName;
 
